@@ -1,0 +1,491 @@
+{
+  "evalId": "eval-Lsn-2025-08-19T08:58:39",
+  "results": {
+    "version": 3,
+    "timestamp": "2025-08-19T08:58:39.028Z",
+    "prompts": [
+      {
+        "raw": "{{prompt}}",
+        "label": "{{prompt}}",
+        "id": "effa18501e44aafd9bc42a2f64ffc9b6350f94025520ca2ed382f9bdc4b6e982",
+        "provider": "exec: uv run run.py \"https://tds-data-analyst-agent-37cb.onrender.com\"",
+        "metrics": {
+          "score": 1,
+          "testPassCount": 1,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 8,
+          "assertFailCount": 0,
+          "totalLatencyMs": 24927,
+          "tokenUsage": {
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "total": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            },
+            "assertions": {
+              "total": 327,
+              "prompt": 260,
+              "completion": 67,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "cost": 0
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 327,
+            "prompt": 260,
+            "completion": 67,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "is-json",
+                "value": {
+                  "type": "object",
+                  "required": [
+                    "average_temp_c",
+                    "max_precip_date",
+                    "min_temp_c",
+                    "temp_precip_correlation",
+                    "average_precip_mm",
+                    "temp_line_chart",
+                    "precip_histogram"
+                  ],
+                  "properties": {
+                    "average_temp_c": {
+                      "type": "number"
+                    },
+                    "max_precip_date": {
+                      "type": "string"
+                    },
+                    "min_temp_c": {
+                      "type": "number"
+                    },
+                    "temp_precip_correlation": {
+                      "type": "number"
+                    },
+                    "average_precip_mm": {
+                      "type": "number"
+                    },
+                    "temp_line_chart": {
+                      "type": "string"
+                    },
+                    "precip_histogram": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "python",
+                "weight": 3,
+                "value": "val = float(output[\"average_temp_c\"])\nif abs(val - 5.1) <= 0.001:\n  return True\nreturn False\n"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "python",
+                "weight": 3,
+                "value": "if output[\"max_precip_date\"] == \"2024-01-06\":\n  return True\nreturn False\n"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "python",
+                "weight": 3,
+                "value": "if output[\"min_temp_c\"] == 2:\n  return True\nreturn False\n"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "python",
+                "weight": 3,
+                "value": "val = float(output[\"temp_precip_correlation\"])\nif abs(val - 0.0413519224) <= 0.001:\n  return True\nreturn False\n"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "python",
+                "weight": 3,
+                "value": "val = float(output[\"average_precip_mm\"])\nif abs(val - 0.9) <= 0.001:\n  return True\nreturn False\n"
+              }
+            },
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "weight": 8,
+                "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+                "threshold": 0.99,
+                "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+              },
+              "pass": true,
+              "score": 1,
+              "reason": "Grading passed",
+              "tokensUsed": {
+                "total": 164,
+                "prompt": 131,
+                "completion": 33,
+                "cached": 0,
+                "numRequests": 0,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              }
+            },
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "weight": 8,
+                "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+                "threshold": 0.99,
+                "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+              },
+              "pass": true,
+              "score": 1,
+              "reason": "Grading passed",
+              "tokensUsed": {
+                "total": 163,
+                "prompt": 129,
+                "completion": 34,
+                "cached": 0,
+                "numRequests": 0,
+                "completionDetails": {
+                  "reasoning": 0,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              }
+            }
+          ],
+          "assertion": null
+        },
+        "id": "a3383c66-a34e-4a1e-b173-5e9b3ce667ee",
+        "latencyMs": 24927,
+        "namedScores": {},
+        "prompt": {
+          "raw": "",
+          "label": "{{prompt}}"
+        },
+        "promptId": "effa18501e44aafd9bc42a2f64ffc9b6350f94025520ca2ed382f9bdc4b6e982",
+        "promptIdx": 0,
+        "provider": {
+          "id": "exec: uv run run.py \"https://tds-data-analyst-agent-37cb.onrender.com\"",
+          "label": ""
+        },
+        "response": {
+          "output": {
+            "average_temp_c": 5.1,
+            "max_precip_date": "2024-01-06",
+            "min_temp_c": 2,
+            "temp_precip_correlation": 0.04135192240969327,
+            "average_precip_mm": 0.9,
+            "temp_line_chart": "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",
+            "precip_histogram": "iVBORw0KGgoAAAANSUhEUgAAAMMAAABYCAYAAABI3kMqAAAAOnRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjEwLjUsIGh0dHBzOi8vbWF0cGxvdGxpYi5vcmcvWftoOwAAAAlwSFlzAAAHsQAAB7EBBsVhhgAAEDtJREFUeJzt3XtczfcfwPHXOZVcW5nrXLLZxfAYiqE5Och1bpUxaxOr1CaWhNmy7MEeFpMJw9x6aC5jQi45ZjquszE8Hmw9EI5IplllqHQ6n98f1ffniIg6J/o8/6nv5fP9vL/fc97fz/d8L5+vSgghkCQJtbUDkKSKotIkg8FgoG7dumi1Wt58802OHDny2MsKDAx84LQTJ06waNEiAL7//vsSl6PX6zlz5kyxco9j5MiRdOjQge7du+Ph4cG+ffseuty7679XSEgI2dnZxMTEsGDBgkeKYfPmzVy7dg2AnTt3smnTpsdYEysSlcSFCxeEt7e3EEKIw4cPi549e5pNz8/PL/M6XV1dS5weEREhtm7dWiZ1+fr6ipMnTwohhDAYDKJFixYiLS3tseq/e1usXLlSzJ8/v9QxPI0qTctwt7Zt23Lp0iX0ej0DBgzA09OTmJgYdu7ciUajwc3NjbVr1wKQnJxMjx490Gq1TJgwAYD27dsDBXtjPz8/PDw8GDZsGPn5+ej1esLCwti0aROnT59Gq9WyZs0aYmNj0Wq1uLi4EBsbq+x1p0yZwogRI5RyAOvWraNjx4506tQJnU4HgFarJTQ0FHd3d4KDg0tcP2dnZ9555x127dqlLDcvL48BAwag1WrRarX3rf/ubaHVarl58yYAu3fvpl+/fmg0GlJTU822QdH/Fy5cYOfOnYwaNYpJkyaZtShRUVF07tyZLl26cOzYMQBcXFwIDg6mY8eOREZGlsnn+sSsnY2WcnfLoNPpxODBg0ViYqLQaDTCZDIJk8kk3NzcRG5urjAajcLNzU0YjUbh6ekpjh49KoT4/x6zaI/v6+srlixZIoQQYvLkyWLjxo0iMTFRTJgwwWw+IYS4deuWEEKI27dvi3bt2gkhzPfMReWMRqN44403RHZ2tsjKylKW0bVrV7F3714hhBCdOnUSmZmZZut371550aJF4uuvv1aWm5ycLIYOHSqEEMJkMt23/qJtUVTff//9J1auXCmGDx8uhBAiISFBjB07tti63b09imIoalHS0tKERqMR+fn54sKFC8LDw0MIIcSLL74oDAaDMBqNolWrVo/2IZazStUy7N27F61WS3R0NLNnzwYK9moqlYr09HTOnDlDr1696NGjB5mZmaSnp3Pp0iVcXV0BUKuLb66iaR06dODs2bMPrFun06HVaunTpw/JyckPnC89PZ2mTZtStWpVHBwcsLOzw2g0AtCuXTsAGjVqRGZmZonreuXKFV544QVluHnz5ri5ufH+++8THh5Ofn5+sTJF26K06yhKOCFpMBho06YNarWaZs2aKXE7OTnh7OyMjY0NVatWLXFdLMXW2gFYUteuXfnpp5+U4cuXLytf8Dp16tCiRQt27dpFlSpVyMvLw87OjiZNmnDs2DFcXFwwmUzFEuL48eO4urpy9OhRs0MHwOyLNWPGDPbt24dKpeKll14CwM7OrtiXsm7duly8eJGcnBzu3LnDnTt3sLW1Lba8kr6Aly5dYuPGjezZs4ekpCQAcnNzGTt2LGq1mtGjR3Pw4MFi9d8v2YvWEeDo0aO8/PLLAOTk5JCfn09qaioZGRkPXJ9mzZpx4sQJTCYTKSkpODo6FluXiqJSJUNJ1Go14eHh9OzZE7VaTd26dVm/fj2zZs0iICAAIQSurq7MmTPHrNwff/zB2rVref7555k+fToHDhxQpnXr1o1BgwYxatQovLy80Gg0uLi44OTkBED37t2ZPHkye/bswdPTEwAbGxs+/fRT3N3dUavVzJgx45HXYdSoUdSqVQsbGxsWL15M/fr1lWS4ePEifn5+2NjYUKNGDVxcXLCzsytW//3cuXOHPn36cPPmTeW3lI+PD507d8bd3V35gvft25eQkBA8PDxo1KgRAA0aNGDQoEG4ubmhVquZP3/+I6+PpalESbsYqUQjR44kLCyM1q1bWzsUqQxUqt8MklQS2TJIUiHZMkhSIYv+gPby8qJZs2aWrFKSHspgMBAXF2fZZGjWrBlRUVGWrFKSHio0NBSQh0mSpKhQ1xk+eKcXWekXH6vsc3Wdid2wq4wjkiqTCpUMWekXiR99/1uKH2ZgyXdLS9JDycMkSSokk0GSCslkkKRCMhkkqVCpk0Gv16PRaAgKCkKv1yvjExMT8fX1xcfHhytXrpRljJJkEaVOBpVKRc2aNcnJyaFx48bK+MWLF7Ny5UqmTJnC8uXLyzRISbIEs2QYMWIECQkJJRbQaDQkJCQQGRlJRESEMl4IgVqtxtnZmcuXL5uV0el0hIaGYjAYyi5ySSpjZsmwbNky0tPTeffdd5k3bx63bt0qXqDwaSgnJydyc3PNxhc9zXR3iwHQu3dvoqKi5H1JUoVmdtHt+vXrnD9/HgcHBxo0aICfnx/r1q0zKxAXF4dOpyMzM5Pg4GA++OADYmNjGT16NP7+/uTl5VWc3g4kqRTMkuGbb75hzJgxyjO6TZo0KVbAy8sLLy8vZVir1QIFjzB27969HEOVpPJldpik1WqVREhISMDNzc0qQUmSNZglQ1GXhAD79++3eDCSZE1mh0np6en88ssvqFQq0tLSrBWTJFmFWcsQHR3NmTNnOH36NPPmzbNWTJJkFWbJkJKSQlZWFteuXePbb7+1UkiSZB1mh0lRUVGEhoZiZ2dnrXgkyWrMkqF169ayQyyp0jJLhsTERPR6Pfb29qhUKtavX2+tuCTJ4sySYe3atSQlJdGhQ4di9xdJ0rPO7Af0+PHjiYmJAWDmzJnWiEeSrMasZahVq5bSo3JF6TNfkizFrGWoU6cOhw4dIiws7IF99UvSs8qsZfjss8/w8vJCCMHrr79urZgkySrMkmH48OGoVCpu374NFLzKVJIqi2Jnk4rIPlGlysYsGf766y8AjEaj8v+9Nm/ezPbt27lx4wZ+fn706tULKHiLja2tLba2tsybNw97e/tyDl2SypZZMmzYsAGVSoW9vT1jx469b4HBgwczePBgMjIyCAsLU5KhWrVqGI1GHB0d5e0c0lPJLBnufvVpamoqqamp9OvX774FZ8yYwZgxY5ThhQsXolariY6OZtu2bQwcOFCZptPp0Ol0skMAqUIr1iFAUlISSUlJLFu2jH/++adYASEEkydPpm/fvri4uPx/QYWnYuvVq6e8Wb6I7BBAehqYtQwtWrRgwoQJQMGDPiNGjChWYP78+ezevZusrCySk5M5ePAgsbGxTJgwgezsbDIyMli2bJllopekMmSWDCqVCn9/f1QqFfXr179vgXHjxjFu3DhlOCgoCKDY+5El6WljlgwzZszg8uXLODo6VqrbMeRLUiS4JxlCQkK4desWy5cvJzAwkCVLllgrLouSL0mR4J4f0DY2Njg7OwPw3HPPWSUgSbIWs2Swt7cnKSmJBQsWkJGRYa2YJMkqlMMkIQTe3t5cv34dk8nERx99ZM24JMnilGRQqVQkJiYyadIka8YjSVajJMOWLVuIj49Hp9NRu3Zt+Qy0VOkovxl0Oh0HDhzg1VdfZcOGDTIRpEpHaRkuXrzIjh07SElJYceOHQAPvC9JKhvy+kbplPf2UpJh6NChpKenK3+l8ievb5ROeW8vJRl8fX0fqxJJelbIp/4lqZBMBkkqJJNBkgqVOhlu3bqFr68vAQEBrF69Whl/6tQpfHx88PHx4dSpU2UapCRZQqmTIS4ujiFDhrB06VLi4+OV8fPmzWPhwoV89913zJ8/v0yDlCRLUAkhRGkKzJw5k759+9K2bVvee+891qxZAxScmi26UHf3ePj/M9C//fYbHTt2fOCyDQaDVR4NlfU++3WXVK/BYCAuLg5EKa1atUps3bpVCCHEsGHDlPH+/v4iMzNTZGVlidGjR5d2sUIIIcaPH/9Y5Z6UrPfZr/tR6rW9b6qUwMvLi+DgYLZv386AAQOUl6J/8sknSvcyj3uzX+/evR+r3JOS9T77dT9KvaU+TJKkZ5U8tSpJhWQySFKhCpEMD7p2YQnnz5/Hz8+PIUOGWLTezZs3ExAQwLBhw9i1y3J3nyYlJREUFMSQIUNYtGiRxeqFgs+5ffv2bNu2zWJ16vV6NBoNQUFB6PX6kmcu95/xj2DVqlUiPj5eCCHE0KFDrRKDt7e3Ver9999/xYcffmjxevPz84WPj49F65w6daqIjIxUzkZagl6vF3369BG+vr7i7NmzJc5bIVqGy5cv06RJE6Cgh47K5N4+ay0hPj6et99+26LPq/z888+0bNmSevXqWaxOAI1GQ0JCApGRkURERJQ4b4VIhsaNGytvFzWZTFaOxjLEA/qstYSBAweSkJBg0UNSvV7P4cOHWbNmDUuXLrXY51zUB7CTkxO5ubklzlvq6wzl4d5rF5Z0/fp1Pv/8c44fP87MmTOZMmWKReq9t8/aom46y5terycuLo7c3FyLtgxfffUVADExMdSpU8di7wyMi4tDp9ORmZlJcHBwifPK6wySVKhCHCZJUkUgk0GSCslkkKRCMhkeU0xMDP3798fX15dZs2Yp4x/lLMnixYs5d+5csfFXrlxh7ty5GAwGwsLC7lv27mnx8fHs37+/1LGHhIQorzcurdzc3If+EH1aVYizSU+roKAg+vfvj7e3NzExMezevZv27dvTqlUrtm/fTnZ2Nt7e3rz22muEh4dTr149PD09uXr1KtnZ2UybNo0bN25Qq1Ytmjdvjru7O6mpqRw4cIBDhw6xYMECunXrxurVq/n777/x9/fn3LlzyrSaNWuiVqtJTk5m2rRpVK1alQEDBtCmTRtGjBjBwIED+fPPP1mxYoXyrr7r168DUL16dUaOHEnTpk1JSkrC3d2dlJQUjEYjc+fOpWvXrri7u3P69Gm0Wi1HjhzBw8MDHx8fqlWrRlpaGg0bNrTm5i9zsmV4AkuXLiUgIEDpZqdv376EhIQQHR2No6MjDRs25Pfff2fhwoV88cUXzJkzhy5dupgtw8vLiy+//NLsFoUuXbrg5uZGcHAwVapUIScnh/r16xMbG2s2rcjixYuZPn06y5Yt44cffgCgVatWhIWFUbt2ba5evarM++uvv9KyZUtlOCgoiPDwcC5cuMDs2bO5dOkSUNAj+/Tp03nrrbdo3LgxK1asYMuWLQC0adOGffv2lfHWtD7ZMjyBgIAA+vfvDxQcNhW908JkMhEeHo6tbcHmnThx4gPPqxuNRgDy8vKUcXfPGx0dzcSJExFCEBERcd/lCCGUPX/R3xo1agBgZ2dndrHpxo0bODo6KsMODg7cuHEDBwcHs2UWDdvb2+Pg4IBKpVIOAZ2cnLhy5UqJ2+ZpJJOhHIwbNw5/f39q165N+/bt+fjjj5k2bRoNGzY0eyUwwPr16/nxxx/x9PRUxjVo0IDk5GSioqLo1q0bkZGRyjv27p5Wu3ZtAAIDA5k6dSrVq1dn+PDhJcb2yiuvkJiY+ETrd+7cOdq0afNEy6iQyv9WKelBIiIixMmTJy1ap8lkEoGBgU+0DF9fX2E0GssooopDXoGuhPbv34+rqyvVq1cvddnc3FwOHjxI9+7dyyEy65LJIEmF/gcPieSNGtvCBwAAAABJRU5ErkJggg=="
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "vars": {
+            "question": "Analyze `sample-weather.csv`.\n\nReturn a JSON object with keys:\n- `average_temp_c`: number\n- `max_precip_date`: string\n- `min_temp_c`: number\n- `temp_precip_correlation`: number\n- `average_precip_mm`: number\n- `temp_line_chart`: base64 PNG string under 100kB\n- `precip_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. What is the average temperature in Celsius?\n2. On which date was precipitation highest?\n3. What is the minimum temperature recorded?\n4. What is the correlation between temperature and precipitation?\n5. What is the average precipitation in millimeters?\n6. Plot temperature over time as a line chart with a red line. Encode as base64 PNG.\n7. Plot precipitation as a histogram with orange bars. Encode as base64 PNG."
+          },
+          "assert": [
+            {
+              "type": "is-json",
+              "value": {
+                "type": "object",
+                "required": [
+                  "average_temp_c",
+                  "max_precip_date",
+                  "min_temp_c",
+                  "temp_precip_correlation",
+                  "average_precip_mm",
+                  "temp_line_chart",
+                  "precip_histogram"
+                ],
+                "properties": {
+                  "average_temp_c": {
+                    "type": "number"
+                  },
+                  "max_precip_date": {
+                    "type": "string"
+                  },
+                  "min_temp_c": {
+                    "type": "number"
+                  },
+                  "temp_precip_correlation": {
+                    "type": "number"
+                  },
+                  "average_precip_mm": {
+                    "type": "number"
+                  },
+                  "temp_line_chart": {
+                    "type": "string"
+                  },
+                  "precip_histogram": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            {
+              "type": "python",
+              "weight": 3,
+              "value": "val = float(output[\"average_temp_c\"])\nif abs(val - 5.1) <= 0.001:\n  return True\nreturn False\n"
+            },
+            {
+              "type": "python",
+              "weight": 3,
+              "value": "if output[\"max_precip_date\"] == \"2024-01-06\":\n  return True\nreturn False\n"
+            },
+            {
+              "type": "python",
+              "weight": 3,
+              "value": "if output[\"min_temp_c\"] == 2:\n  return True\nreturn False\n"
+            },
+            {
+              "type": "python",
+              "weight": 3,
+              "value": "val = float(output[\"temp_precip_correlation\"])\nif abs(val - 0.0413519224) <= 0.001:\n  return True\nreturn False\n"
+            },
+            {
+              "type": "python",
+              "weight": 3,
+              "value": "val = float(output[\"average_precip_mm\"])\nif abs(val - 0.9) <= 0.001:\n  return True\nreturn False\n"
+            },
+            {
+              "type": "llm-rubric",
+              "weight": 8,
+              "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+              "threshold": 0.99,
+              "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+            },
+            {
+              "type": "llm-rubric",
+              "weight": 8,
+              "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+              "threshold": 0.99,
+              "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+            }
+          ],
+          "options": {
+            "provider": {
+              "id": "openai:gpt-4.1-nano"
+            },
+            "transform": "JSON.parse(output)"
+          },
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "vars": {
+          "question": "Analyze `sample-weather.csv`.\n\nReturn a JSON object with keys:\n- `average_temp_c`: number\n- `max_precip_date`: string\n- `min_temp_c`: number\n- `temp_precip_correlation`: number\n- `average_precip_mm`: number\n- `temp_line_chart`: base64 PNG string under 100kB\n- `precip_histogram`: base64 PNG string under 100kB\n\nAnswer:\n1. What is the average temperature in Celsius?\n2. On which date was precipitation highest?\n3. What is the minimum temperature recorded?\n4. What is the correlation between temperature and precipitation?\n5. What is the average precipitation in millimeters?\n6. Plot temperature over time as a line chart with a red line. Encode as base64 PNG.\n7. Plot precipitation as a histogram with orange bars. Encode as base64 PNG."
+        },
+        "metadata": {
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 1,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 0,
+        "completion": 0,
+        "cached": 0,
+        "total": 0,
+        "numRequests": 1,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0
+        },
+        "assertions": {
+          "total": 327,
+          "prompt": 260,
+          "completion": 67,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0
+          }
+        }
+      }
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "Sample evaluation – network dataset",
+    "prompts": [
+      "{{prompt}}"
+    ],
+    "providers": [
+      "exec: uv run run.py \"{{ env.PROVIDER_URL }}\""
+    ],
+    "tests": [
+      {
+        "vars": {
+          "question": "file://questions.txt"
+        },
+        "assert": [
+          {
+            "type": "is-json",
+            "value": {
+              "type": "object",
+              "required": [
+                "average_temp_c",
+                "max_precip_date",
+                "min_temp_c",
+                "temp_precip_correlation",
+                "average_precip_mm",
+                "temp_line_chart",
+                "precip_histogram"
+              ],
+              "properties": {
+                "average_temp_c": {
+                  "type": "number"
+                },
+                "max_precip_date": {
+                  "type": "string"
+                },
+                "min_temp_c": {
+                  "type": "number"
+                },
+                "temp_precip_correlation": {
+                  "type": "number"
+                },
+                "average_precip_mm": {
+                  "type": "number"
+                },
+                "temp_line_chart": {
+                  "type": "string"
+                },
+                "precip_histogram": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          {
+            "type": "python",
+            "weight": 3,
+            "value": "val = float(output[\"average_temp_c\"])\nif abs(val - 5.1) <= 0.001:\n  return True\nreturn False\n"
+          },
+          {
+            "type": "python",
+            "weight": 3,
+            "value": "if output[\"max_precip_date\"] == \"2024-01-06\":\n  return True\nreturn False\n"
+          },
+          {
+            "type": "python",
+            "weight": 3,
+            "value": "if output[\"min_temp_c\"] == 2:\n  return True\nreturn False\n"
+          },
+          {
+            "type": "python",
+            "weight": 3,
+            "value": "val = float(output[\"temp_precip_correlation\"])\nif abs(val - 0.0413519224) <= 0.001:\n  return True\nreturn False\n"
+          },
+          {
+            "type": "python",
+            "weight": 3,
+            "value": "val = float(output[\"average_precip_mm\"])\nif abs(val - 0.9) <= 0.001:\n  return True\nreturn False\n"
+          },
+          {
+            "type": "llm-rubric",
+            "weight": 8,
+            "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+            "threshold": 0.99,
+            "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the temperature line chart. Score 1 only if (a) line chart of temperature over time; (b) line is red; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {line:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"temp_line_chart\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+          },
+          {
+            "type": "llm-rubric",
+            "weight": 8,
+            "rubricPrompt": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n",
+            "threshold": 0.99,
+            "value": "[\n  {\"role\":\"system\",\"content\":\"Grade the precipitation histogram. Score 1 only if (a) histogram of precipitation amounts; (b) bars are orange; (c) axes visible and labelled; (d) file size < 100 kB. Respond JSON {histogram:bool,color:bool,axes:bool,size:bool,score:number}\"},\n  {\"role\":\"user\",\"content\":[\n    {\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,{{output[\"precip_histogram\"]}}\"}},\n    {\"type\":\"text\",\"text\":\"{{vars.question}}\"}\n  ]}\n]\n"
+          }
+        ]
+      }
+    ],
+    "scenarios": [],
+    "env": {},
+    "sharing": true,
+    "defaultTest": {
+      "options": {
+        "provider": {
+          "id": "openai:gpt-4.1-nano"
+        },
+        "transform": "JSON.parse(output)"
+      },
+      "vars": {},
+      "assert": [],
+      "metadata": {}
+    },
+    "outputPath": [
+      "evaluation_logs/23f2005607@ds.study.iitm.ac.in/20/project-data-analyst-agent-sample-weather/output.json"
+    ],
+    "extensions": [],
+    "metadata": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.117.5",
+    "nodeVersion": "v22.16.0",
+    "platform": "linux",
+    "arch": "x64",
+    "exportedAt": "2025-08-19T08:59:05.359Z",
+    "evaluationCreatedAt": "2025-08-19T08:58:39.028Z"
+  }
+}
