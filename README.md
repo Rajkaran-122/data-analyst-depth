@@ -1,6 +1,3 @@
-# Here are your Instructions
-Here’s a clean, engineering-grade `README.md` you can use for this project:
-
 ``` 
 # Data Bridge / Data Analyst Depth
 
