@@ -1,207 +1,70 @@
-# DataFlow AI - Premium Analytics Dashboard v2.0
+# Getting Started with Create React App
 
-Professional Tailwind CSS frontend for the Data Analyst Agent with modern UI/UX and smooth animations.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## ✨ Features
+## Available Scripts
 
-### 🎨 Design & Styling
-- **Premium Dark Theme** with professional color palette
-- **Tailwind CSS** - Utility-first CSS framework for rapid development
-- **Glassmorphism Effects** - Modern frosted glass UI components
-- **Gradient Accents** - Beautiful gradient text and backgrounds
-- **Smooth Animations** - 12+ custom animations (fade-in, slide, spin, float, glow)
-- **Responsive Design** - Works seamlessly on mobile, tablet, and desktop
-- **CSS Variables** - Easy theming and customization
+In the project directory, you can run:
 
-### 💬 Chat Interface
-- Real-time message display with user/bot distinction
-- Syntax highlighting for code blocks (Highlight.js integration)
-- Markdown support (bold, italic, code, links)
-- Auto-scrolling to latest messages
-- Message history persistence
+### `npm start`
 
-### 📊 Data Management
-- **Drag-drop file upload** for CSV, XLSX, JSON files
-- File size validation (50MB limit)
-- File metadata tracking
-- Upload progress indicators
-- Multiple file support
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-### 🔌 Backend Integration
-- Auto health checks every 30 seconds
-- Auto-reconnect logic on connection loss
-- Graceful error handling
-- Status indicator showing connection state
-- Support for three API endpoints
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-### 📈 Quick Actions
-- Summary generation
-- Statistics calculation
-- Visualization suggestions
-- Key insights extraction
-- Template-based queries
+### `npm test`
 
-### 📱 Responsive Breakpoints
-- **Desktop** (1024px+): Full sidebar layout with right panel
-- **Tablet** (768px+): Sidebar visible, compact layout
-- **Mobile** (< 768px): Hamburger menu, optimized for touch
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### 💾 Data Persistence
-- LocalStorage for conversation history
-- Recent queries tracking (last 10)
-- File metadata storage
-- Auto-save after each message
+### `npm run build`
 
-### 🔒 Security
-- HTML escaping for XSS protection
-- File type and size validation
-- Input sanitization
-- HTTPS ready for production
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-## 🚀 Quick Start
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-### Installation
-```bash
-cd frontend
-npm install
-```
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### Development
-```bash
-npm run dev
-```
-Opens at `http://localhost:3000` with live CSS rebuilding
+### `npm run eject`
 
-### Production Build
-```bash
-npm run build:prod
-npm start
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-### Deploy to Railway
-```bash
-git add .
-git commit -m "Deploy Tailwind v2.0"
-git push
-```
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-## 📁 Project Structure
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-```
-frontend/
-├── index.html              # Main HTML structure
-├── app.js                  # JavaScript logic
-├── styles/
-│   ├── input.css          # Tailwind directives
-│   └── output.css         # Compiled CSS
-├── tailwind.config.ts     # Tailwind config
-└── package.json           # Dependencies
-```
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## 🎨 Colors & Theme
+## Learn More
 
-All colors use CSS variables for easy customization:
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-- **Primary**: Blue (`#3b82f6`)
-- **Accent**: Violet (`#8b5cf6`)
-- **Secondary**: Indigo (`#6366f1`)
-- **Background**: Deep slate (`#0f172a`)
-- **Card**: Slate (`#1e293b`)
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-Edit `styles/input.css` to customize colors.
+### Code Splitting
 
-## 🎬 Animations
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-Smooth, professional animations powered by Tailwind:
+### Analyzing the Bundle Size
 
-- `fade-in` - 0.6s entrance
-- `slide-in-left` - 0.6s sidebar
-- `slide-in-right` - 0.6s toast
-- `scale-in` - 0.3s modals
-- `spin-slow` - 6s loading
-- `float` - 3s icons
-- `glow` - 2s emphasis
-- `pulse` - Status dots
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-## 🔗 Backend Integration
+### Making a Progressive Web App
 
-**URL**: `https://web-production-0249c.up.railway.app`
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Endpoints
-- `GET /health` - Health check
-- `POST /api/analyze` - Send query
-- `POST /api/upload` - Upload file
+### Advanced Configuration
 
-## 🛠️ Customization
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Change Colors
-Edit `styles/input.css`:
-```css
-:root {
-  --primary: 222.2 47.6% 11.2%;
-  --accent: 217.2 91.2% 59.8%;
-}
-```
+### Deployment
 
-### Change Backend URL
-Edit `app.js` line 8:
-```javascript
-const API_URL = 'https://your-url.com';
-```
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-## 📦 Dependencies
+### `npm run build` fails to minify
 
-- `tailwindcss` - CSS framework
-- `serve` - Static server
-- `postcss` - CSS processing
-- `autoprefixer` - Vendor prefixes
-
-## 🌐 Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- iOS Safari 14+
-- Android browsers
-
-## ⚡ Performance
-
-- Load Time: < 2 seconds
-- CSS Size: ~50KB minified
-- JS Size: ~18KB
-- Total: ~70KB
-
-## 🚨 Troubleshooting
-
-**Styles not loading**
-```bash
-npm run build:prod
-# Clear cache: Ctrl+Shift+Delete
-```
-
-**Backend not connecting**
-- Check URL in `app.js`
-- Verify backend is running
-- Check CORS configuration
-
-**File upload fails**
-- Verify file type (CSV, XLSX, JSON)
-- Check file size (< 50MB)
-- Ensure backend endpoint works
-
-## 🎯 Features Roadmap
-
-- [ ] Light/Dark theme switcher
-- [ ] Component library
-- [ ] Advanced charts
-- [ ] Export to PDF/CSV
-- [ ] Real-time collaboration
-- [ ] Voice input
-
-## 📝 License
-
-MIT - See LICENSE file
-
----
-
-**Version**: 2.0.0 | Built with Tailwind CSS, HTML, & Vanilla JS
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
