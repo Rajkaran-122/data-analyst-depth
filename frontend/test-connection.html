@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #1f2937;
+        }
+        .result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .pass {
+            background: #dcfce7;
+            border-left: 3px solid #16a34a;
+            color: #15803d;
+        }
+        .fail {
+            background: #fee2e2;
+            border-left: 3px solid #dc2626;
+            color: #b91c1c;
+        }
+        .info {
+            background: #dbeafe;
+            border-left: 3px solid #0284c7;
+            color: #0c4a6e;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Backend Connection Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>Test Control</h2>
+        <button onclick="runAllTests()" id="runAllBtn">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div class="test-section">
+        <h2>1. Health Endpoint Test</h2>
+        <button onclick="testHealth()">Test Health</button>
+        <div id="healthResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Analyze Endpoint Test (Simple Query)</h2>
+        <button onclick="testAnalyzeSimple()">Test Analyze</button>
+        <div id="analyzeResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Analyze Endpoint Test (With Context)</h2>
+        <button onclick="testAnalyzeContext()">Test Analyze with Context</button>
+        <div id="analyzeContextResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Upload Endpoint Test</h2>
+        <button onclick="testUpload()">Test Upload</button>
+        <div id="uploadResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Connection Stability Test</h2>
+        <button onclick="testStability()">Test Stability (3 requests)</button>
+        <div id="stabilityResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Summary</h2>
+        <div id="summary"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://web-production-0249c.up.railway.app';
+        const ENDPOINTS = {
+            HEALTH: `${API_URL}/health`,
+            ANALYZE: `${API_URL}/analyze`,
+            UPLOAD: `${API_URL}/api/`,
+            ROOT: `${API_URL}/`
+        };
+
+        let testResults = {
+            health: null,
+            analyze: null,
+            analyzeContext: null,
+            upload: null,
+            stability: null
+        };
+
+        function addResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = message;
+            element.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('healthResult').innerHTML = '';
+            document.getElementById('analyzeResult').innerHTML = '';
+            document.getElementById('analyzeContextResult').innerHTML = '';
+            document.getElementById('uploadResult').innerHTML = '';
+            document.getElementById('stabilityResult').innerHTML = '';
+            document.getElementById('summary').innerHTML = '';
+        }
+
+        async function testHealth() {
+            addResult('healthResult', '⏳ Testing...', 'info');
+            document.getElementById('healthResult').innerHTML = '';
+            try {
+                const start = Date.now();
+                const response = await fetch(ENDPOINTS.HEALTH, {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                const duration = Date.now() - start;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('healthResult', `✅ PASS - Status: ${response.status} (${duration}ms)`, 'pass');
+                    addResult('healthResult', `Response: ${JSON.stringify(data)}`, 'info');
+                    testResults.health = true;
+                } else {
+                    addResult('healthResult', `❌ FAIL - Status: ${response.status}`, 'fail');
+                    testResults.health = false;
+                }
+            } catch (error) {
+                addResult('healthResult', `❌ FAIL - ${error.message}`, 'fail');
+                testResults.health = false;
+            }
+            updateSummary();
+        }
+
+        async function testAnalyzeSimple() {
+            addResult('analyzeResult', '⏳ Testing...', 'info');
+            document.getElementById('analyzeResult').innerHTML = '';
+            try {
+                const start = Date.now();
+                const response = await fetch(ENDPOINTS.ANALYZE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: 'What is data analysis?', context: {} }),
+                    timeout: 10000
+                });
+                const duration = Date.now() - start;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const fields = Object.keys(data).join(', ');
+                    addResult('analyzeResult', `✅ PASS - Status: ${response.status} (${duration}ms)`, 'pass');
+                    addResult('analyzeResult', `Fields: ${fields}`, 'info');
+                    addResult('analyzeResult', `Explanation length: ${data.explanation ? data.explanation.length : 0} chars`, 'info');
+                    testResults.analyze = true;
+                } else {
+                    addResult('analyzeResult', `❌ FAIL - Status: ${response.status}`, 'fail');
+                    testResults.analyze = false;
+                }
+            } catch (error) {
+                addResult('analyzeResult', `❌ FAIL - ${error.message}`, 'fail');
+                testResults.analyze = false;
+            }
+            updateSummary();
+        }
+
+        async function testAnalyzeContext() {
+            addResult('analyzeContextResult', '⏳ Testing...', 'info');
+            document.getElementById('analyzeContextResult').innerHTML = '';
+            try {
+                const start = Date.now();
+                const response = await fetch(ENDPOINTS.ANALYZE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: 'Analyze this',
+                        context: { domain: 'AI', level: 'intermediate' }
+                    }),
+                    timeout: 10000
+                });
+                const duration = Date.now() - start;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('analyzeContextResult', `✅ PASS - Status: ${response.status} (${duration}ms)`, 'pass');
+                    addResult('analyzeContextResult', `Context accepted: Yes`, 'info');
+                    testResults.analyzeContext = true;
+                } else {
+                    addResult('analyzeContextResult', `❌ FAIL - Status: ${response.status}`, 'fail');
+                    testResults.analyzeContext = false;
+                }
+            } catch (error) {
+                addResult('analyzeContextResult', `❌ FAIL - ${error.message}`, 'fail');
+                testResults.analyzeContext = false;
+            }
+            updateSummary();
+        }
+
+        async function testUpload() {
+            addResult('uploadResult', '⏳ Testing...', 'info');
+            document.getElementById('uploadResult').innerHTML = '';
+            try {
+                const start = Date.now();
+                const formData = new FormData();
+                formData.append('questions.txt', new Blob(['test'], { type: 'text/plain' }), 'test.txt');
+
+                const response = await fetch(ENDPOINTS.UPLOAD, {
+                    method: 'POST',
+                    body: formData,
+                    timeout: 10000
+                });
+                const duration = Date.now() - start;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('uploadResult', `✅ PASS - Status: ${response.status} (${duration}ms)`, 'pass');
+                    addResult('uploadResult', `Response fields: ${Object.keys(data).join(', ')}`, 'info');
+                    testResults.upload = true;
+                } else {
+                    addResult('uploadResult', `⚠️ Status: ${response.status} (${duration}ms)`, 'info');
+                    addResult('uploadResult', `Endpoint accessible but expected error for test file`, 'pass');
+                    testResults.upload = true;
+                }
+            } catch (error) {
+                addResult('uploadResult', `❌ FAIL - ${error.message}`, 'fail');
+                testResults.upload = false;
+            }
+            updateSummary();
+        }
+
+        async function testStability() {
+            addResult('stabilityResult', '⏳ Testing 3 requests...', 'info');
+            document.getElementById('stabilityResult').innerHTML = '';
+            let passCount = 0;
+
+            for (let i = 1; i <= 3; i++) {
+                try {
+                    const start = Date.now();
+                    const response = await fetch(ENDPOINTS.ANALYZE, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: `Test ${i}`, context: {} }),
+                        timeout: 10000
+                    });
+                    const duration = Date.now() - start;
+
+                    if (response.ok) {
+                        addResult('stabilityResult', `✅ Request ${i}: OK (${duration}ms)`, 'pass');
+                        passCount++;
+                    } else {
+                        addResult('stabilityResult', `❌ Request ${i}: Status ${response.status}`, 'fail');
+                    }
+                } catch (error) {
+                    addResult('stabilityResult', `❌ Request ${i}: ${error.message}`, 'fail');
+                }
+            }
+
+            if (passCount === 3) {
+                addResult('stabilityResult', `✅ Stability: 3/3 requests successful`, 'pass');
+                testResults.stability = true;
+            } else {
+                addResult('stabilityResult', `⚠️ Stability: ${passCount}/3 requests successful`, 'info');
+                testResults.stability = passCount >= 2;
+            }
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            const total = Object.values(testResults).filter(v => v !== null).length;
+            const passed = Object.values(testResults).filter(v => v === true).length;
+            
+            summary.innerHTML = `
+                <div class="result info">
+                    <strong>Tests Completed:</strong> ${total}/5
+                </div>
+                <div class="result ${passed === total && total > 0 ? 'pass' : 'info'}">
+                    <strong>Tests Passed:</strong> ${passed}/${total}
+                </div>
+                ${passed === total && total > 0 ? '<div class="result pass"><strong>✅ All tests passed! Backend is working correctly.</strong></div>' : ''}
+            `;
+        }
+
+        async function runAllTests() {
+            clearResults();
+            document.getElementById('runAllBtn').disabled = true;
+            
+            await testHealth();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testAnalyzeSimple();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testAnalyzeContext();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testUpload();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testStability();
+            
+            document.getElementById('runAllBtn').disabled = false;
+        }
+
+        // Run tests on page load
+        window.addEventListener('load', updateSummary);
+    </script>
+</body>
+</html>

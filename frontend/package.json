@@ -1,0 +1,34 @@
+{
+  "name": "data-analyst-agent-frontend",
+  "version": "2.0.0",
+  "description": "Premium Tailwind CSS frontend for data analyst AI agent",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npm run build:watch & serve -s . -l 3000",
+    "build:watch": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
+    "build:prod": "tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
+    "start": "npm run build:prod && serve -s . -l 3000"
+  },
+  "keywords": [
+    "data-analyst",
+    "ai",
+    "agent",
+    "frontend",
+    "tailwindcss"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
+
