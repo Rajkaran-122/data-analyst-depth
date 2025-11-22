@@ -340,3 +340,6 @@ For now, you have a solid MVP with:
 - Persistent activity logs
 - A dashboard, workspace, and connectors panel
 - Health checks and testable endpoints
+```
+
+If you’d like, I can also write this directly into `/app/README.md` in the repo, but this text is ready to paste as-is.
