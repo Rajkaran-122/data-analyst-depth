@@ -415,6 +415,21 @@ def _offline_analyze_router(question_text: str) -> Dict[str, Any]:
         except Exception as e:
             logger.warning(f"Offline sales handler failed: {e}")
 
+    # Try generic CSV handler if data.csv exists
+    if os.path.exists("data.csv"):
+        try:
+            # We need to import this inside the function or at top level. 
+            # Since I can't easily edit top level imports without replacing the whole file or context shifts,
+            # I'll rely on the helper method being injected or simple inline logic.
+            # But wait, I created a new file 'generic_handler.py'. I need to import it.
+            # Actually, let's just use the logic I wrote in the separate file, but I need to import it.
+            # To be safe, let's copy the logic here or import it.
+            # Let's try to import it dynamically.
+            from generic_handler import _offline_handle_generic_csv
+            return _offline_handle_generic_csv()
+        except Exception as e:
+            logger.warning(f"Generic offline handler failed: {e}")
+
     return {
         "summary": "Received question but LLM is not configured. Using offline heuristics.",
         "data": {"question": question_text[:500]},
@@ -567,7 +582,7 @@ async def analyze_question(request: QuestionRequest) -> AnalysisResponse:
     try:
         logger.info(f"Received analysis request: {request.question}")
 
-        use_llm = bool(os.getenv("GOOGLE_API_KEY"))
+        use_llm = bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
 
         if use_llm:
             result = await agent.process_question(
@@ -693,7 +708,7 @@ async def analyze_file_upload(request: Request):
             original_cwd = os.getcwd()
             os.chdir(temp_dir)
 
-            use_llm = bool(os.getenv("GOOGLE_API_KEY"))
+            use_llm = bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
             if use_llm:
                 try:
                     from agent_core import generate_analysis_script, execute_script

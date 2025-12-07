@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AgentConfig:
     """Configuration for the Ultimate Data Analyst Agent (Free Version)."""
-    gemini_model: str = "gemini-1.5-flash"  
+    gemini_model: str = "gemini-2.0-flash"  
     max_tokens: int = 3000             
     temperature: float = 0.2
     execution_timeout: int = 180
@@ -162,9 +162,9 @@ def generate_analysis_script(
     if not GEMINI_AVAILABLE:
         raise Exception("Google Generative AI library not installed. Please install with: pip install google-generativeai")
     
-    api_key = os.getenv('GEMINI_API_KEY')
+    api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
     if not api_key:
-        raise Exception("GOOGLE_API_KEY environment variable not set")
+        raise Exception("GOOGLE_API_KEY (or GEMINI_API_KEY) environment variable not set")
     
     if config is None:
         config = AgentConfig()
