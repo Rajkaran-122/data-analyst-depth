@@ -28,6 +28,15 @@ import seaborn as sns
 
 from agent_core import DataAnalystAgent, AgentConfig
 
+# Import new route modules
+from dashboard_routes import router as dashboard_router
+from datasets_routes import router as datasets_router
+from analytics_routes import router as analytics_router
+from reports_routes import router as reports_router
+from settings_routes import router as settings_router
+from workspaces_routes import router as workspaces_router
+from storage import storage
+
 
 # -----------------------------------------------------------------------------
 # Environment & app setup
@@ -760,6 +769,14 @@ async def analyze_file_upload(request: Request):
 # -----------------------------------------------------------------------------
 # App wiring & shutdown hook
 # -----------------------------------------------------------------------------
+
+# Register new API routers
+api_router.include_router(dashboard_router)
+api_router.include_router(datasets_router)
+api_router.include_router(analytics_router)
+api_router.include_router(reports_router)
+api_router.include_router(settings_router)
+api_router.include_router(workspaces_router)
 
 app.include_router(api_router)
 
