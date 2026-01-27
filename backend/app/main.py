@@ -24,8 +24,7 @@ import redis
 from app.config import settings
 from app.database import engine, Base, init_db
 from app.core.exceptions import AppException
-from app.api import auth
-from app.api import dashboard, datasets
+from app.api import auth, dashboard, datasets, analytics, reports, workspaces, explorer, ai, settings_api
 
 logger = logging.getLogger(__name__)
 
@@ -257,16 +256,16 @@ async def metrics():
 
 
 # Include API routers
+# Include API routers
 app.include_router(auth.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
-
-# TODO: Include other routers after they're converted to use database
-# app.include_router(analytics.router, prefix="/api")
-# app.include_router(reports.router, prefix="/api")
-# app.include_router(settings_routes.router, prefix="/api")
-# app.include_router(workspaces.router, prefix="/api")
-# app.include_router(explorer.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
+app.include_router(settings_api.router, prefix="/api")
+app.include_router(workspaces.router, prefix="/api")
+app.include_router(explorer.router, prefix="/api")
+app.include_router(ai.router, prefix="/api")
 
 
 # Root endpoint

@@ -1,48 +1,40 @@
-# Data Analyst Depth Portal - Production Backend
-
-# Core Framework
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.4.0
-pydantic-settings>=2.1.0
-python-multipart>=0.0.6
-
-# Database
-sqlalchemy>=2.0.0
-alembic>=1.12.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-dotenv>=1.0.0
+sqlalchemy>=2.0.25
 psycopg2-binary>=2.9.9
-asyncpg>=0.29.0
-
-# Caching
-redis>=5.0.0
-
-# Background Jobs
-celery[redis]>=5.3.0
-
-# Authentication & Security
+alembic>=1.13.1
+pydantic>=2.5.3
+pydantic-settings>=2.1.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-cryptography>=41.0.5
-
-# Rate Limiting
+python-multipart>=0.0.6
+email-validator>=2.1.0.post1
+redis>=5.0.1
+celery>=5.3.6
+flower>=2.0.1
 slowapi>=0.1.9
-
-# AI
-google-generativeai>=0.3.0
-
-# Monitoring & Logging
-prometheus-client>=0.18.0
-python-json-logger>=2.0.7
-
-# Utilities
-python-dotenv>=1.0.0
-httpx>=0.25.0
+httpx>=0.26.0
+prometheus-client>=0.19.0
+gunicorn>=21.2.0
+cryptography>=41.0.7
 aiofiles>=23.2.1
 
-# Development/Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.1.0
-black>=23.10.0
-pylint>=3.0.0
-mypy>=1.6.0
+# Data Science & Analysis
+pandas>=2.1.4
+numpy>=1.26.3
+duckdb>=0.9.2
+networkx>=3.2.1
+openpyxl>=3.1.2
+python-dateutil>=2.8.2
+
+# Visualization
+matplotlib>=3.8.2
+seaborn>=0.13.1
+
+# AI & External Services
+google-generativeai>=0.3.2
+requests>=2.31.0
+
+# Legacy Compatibility
+motor>=3.3.2
