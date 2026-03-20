@@ -1,31 +1,27 @@
 # Data Bridge / Data Analyst Depth
 
+> [!IMPORTANT]
+> **PRIVATE & CONFIDENTIAL**: This project is intended for internal use only. Unauthorized access, reuse, or distribution of this code is strictly prohibited.
+
 A full-stack **Data Bridge platform** built on top of the TDS Data Analyst agent.  
-It lets you:
-
-- Ask natural language questions to an analysis agent
-- Upload datasets (CSV/XLSX/JSON) for analysis
-- Inspect dataset schemas
-- Monitor activity & basic metrics
-- Test data connectors
-- Persist activity logs to MongoDB
-
-The app runs as a React frontend and FastAPI backend, with services managed by `supervisor`.
 
 ---
 
-## 🔧 Tech Stack
+## 🔧 Tech Stack (2026)
 
-- **Frontend**: React + Tailwind CSS  
-- **Backend**: FastAPI (Python)  
-- **Database**: MongoDB (via `motor`)  
+- **Frontend**: React + Tailwind CSS + Craco
+- **Backend**: FastAPI (Python) + Uvicorn
+- **Database**: 
+  - **Primary**: PostgreSQL (via SQLAlchemy/Alembic)
+  - **Compatibility**: MongoDB (via `motor`)
+  - **Cache**: Redis
 - **Data / Analytics**:
-  - `pandas`, `duckdb`
+  - `pandas`, `duckdb` (DuckDB for local analytical workloads)
   - `matplotlib`, `seaborn` for plots
-  - Optional LLM (Gemini), via `agent_core.py`
-- **Process Management**: `supervisor`
+  - AI Assistant via Google Gemini (`agent_core.py`)
 
 ---
+
 
 ## 🚀 Core Features
 
@@ -144,29 +140,43 @@ Key frontend components:
 
 ---
 
-## ⚙️ Running & Managing Services
+## ⚙️ Running Locally
 
-> All commands assume you’re inside the container at `/app`.
+### 1. Prerequisites
+- Python 3.10+
+- Node.js & npm
+- PostgreSQL & Redis (running via Docker or local service)
+- MongoDB (optional, for compatibility)
 
-### Supervisor Control
+### 2. Setup
+```bash
+# Backend Setup
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# Frontend Setup
+cd ../frontend
+npm install
+```
+
+### 3. Execution
+You can use the provided start script or run manually:
 
 ```bash
-# Restart backend only
-cd /app
-sudo supervisorctl restart backend
+# Option A: Start script (Windows)
+.\start_dev.bat
 
-# Restart frontend only
-cd /app
-sudo supervisorctl restart frontend
+# Option B: Manual Backend
+cd backend
+uvicorn server:app --reload --port 8000
 
-# Restart all services (backend, frontend, mongodb, proxy, etc.)
-cd /app
-sudo supervisorctl restart all
-
-# Check status of all services
-cd /app
-sudo supervisorctl status
+# Option B: Manual Frontend
+cd frontend
+npm start
 ```
+
 
 ---
 
