@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ExportIcon, RefreshIcon, MoreIcon, CloseIcon } from '../icons';
+import { CopyIcon, ImageDownIcon, CheckIcon } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  ScatterChart, Scatter
+} from 'recharts';
 
 export function ChatInterface({
     messages = [],
@@ -175,6 +182,36 @@ export function ChatInterface({
 
 function MessageBubble({ message }) {
     const isUser = message.role === 'user';
+    const chartRef = useRef(null);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyText = async () => {
+        try {
+            await navigator.clipboard.writeText(message.content);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (e) {
+            console.error('Failed to copy text', e);
+        }
+    };
+
+    const handleExportPNG = async () => {
+        if (!chartRef.current) return;
+        try {
+            // Apply slight padding for cleaner export
+            const canvas = await html2canvas(chartRef.current, { 
+                backgroundColor: '#12121A',
+                scale: 2 // Higher resolution
+            });
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = image;
+            link.download = `chart_snapshot_${Date.now()}.png`;
+            link.click();
+        } catch (e) {
+            console.error('Failed to export chart', e);
+        }
+    };
 
     return (
         <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
@@ -209,35 +246,225 @@ function MessageBubble({ message }) {
                 }
       `}>
                 <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                
+                {/* Dynamically Render Data Visualizations */}
+                {message.chartData && message.chartData.length > 0 && message.chartConfig && (
+                    <div ref={chartRef} className="bg-[#12121A] rounded-xl p-2 pb-4 mt-3">
+                        <DynamicChart data={message.chartData} config={message.chartConfig} />
+                    </div>
+                )}
 
                 {/* Response Actions (for assistant messages) */}
                 {!isUser && message.showActions && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-[#2A2A3A]">
-                        <button className="
-              flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-              bg-[#1A1A24] border border-[#2A2A3A]
-              text-xs text-[#A1A1AA]
-              hover:bg-[#22222E] hover:text-white
-              transition-all duration-200
-            ">
-                            <ExportIcon className="w-3.5 h-3.5" />
-                            Export
+                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[#2A2A3A]">
+                        <button 
+                            onClick={handleCopyText}
+                            className="
+                            flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                            bg-[#1A1A24] border border-[#2A2A3A]
+                            text-xs text-[#A1A1AA]
+                            hover:bg-[#22222E] hover:text-white
+                            transition-all duration-200
+                        ">
+                            {copied ? <CheckIcon className="w-3.5 h-3.5 text-[#10B981]" /> : <CopyIcon className="w-3.5 h-3.5" />}
+                            {copied ? 'Copied' : 'Copy'}
                         </button>
+                        {message.chartData && message.chartData.length > 0 && (
+                            <button 
+                                onClick={() => {
+                                    const csvContent = "data:text/csv;charset=utf-8," 
+                                        + Object.keys(message.chartData[0]).join(",") + "\n" 
+                                        + message.chartData.map(e => Object.values(e).join(",")).join("\n");
+                                    const encodedUri = encodeURI(csvContent);
+                                    const link = document.createElement("a");
+                                    link.setAttribute("href", encodedUri);
+                                    link.setAttribute("download", "chart_data_export.csv");
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }}
+                                className="
+                                flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                                bg-[#1A1A24] border border-[#2A2A3A]
+                                text-xs text-[#A1A1AA]
+                                hover:bg-[#22222E] hover:text-white
+                                transition-all duration-200
+                            ">
+                                <ExportIcon className="w-3.5 h-3.5" />
+                                Export CSV
+                            </button>
+                        )}
+                        {message.chartData && message.chartData.length > 0 && (
+                            <button 
+                                onClick={handleExportPNG}
+                                className="
+                                flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                                bg-[#1A1A24] border border-[#2A2A3A]
+                                text-xs text-[#A1A1AA]
+                                hover:bg-[#22222E] hover:text-white
+                                transition-all duration-200
+                            ">
+                                <ImageDownIcon className="w-3.5 h-3.5" />
+                                Export PNG
+                            </button>
+                        )}
                         <button className="
-              flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
-              bg-[#1A1A24] border border-[#2A2A3A]
-              text-xs text-[#A1A1AA]
-              hover:bg-[#22222E] hover:text-white
-              transition-all duration-200
-            ">
+                            flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg
+                            bg-[#1A1A24] border border-[#2A2A3A]
+                            text-xs text-[#A1A1AA]
+                            hover:bg-[#22222E] hover:text-white
+                            transition-all duration-200
+                        ">
                             <RefreshIcon className="w-3.5 h-3.5" />
                             Regenerate
                         </button>
+                        
+                        {/* Token / Cost tracking badge */}
+                        {message.usage && (
+                            <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#111118] border border-[#1E1E2A] text-[11px] text-[#A1A1AA]" title="Token usage for this query">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                                {message.usage.provider ? message.usage.provider.charAt(0).toUpperCase() + message.usage.provider.slice(1) : 'AI Model'} 
+                                <span className="text-[#52525B]">|</span> 
+                                {message.usage.total_tokens ? message.usage.total_tokens.toLocaleString() : 0} tokens
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
         </div>
     );
+}
+
+const COLORS = ['#3B82F6', '#8B5CF6', '#EC4899', '#10B981', '#F59E0B', '#6366F1'];
+
+function DynamicChart({ data, config }) {
+  const [activeType, setActiveType] = useState(config?.type || 'table');
+
+  useEffect(() => {
+     if (config?.type) {
+         setActiveType(config.type);
+     }
+  }, [config]);
+
+  if (!data || data.length === 0 || !config) return null;
+
+  const { xAxisKey, yAxisKey, title } = config;
+  // yAxisKey might be an array or string
+  const yKeys = Array.isArray(yAxisKey) ? yAxisKey : [yAxisKey].filter(Boolean);
+
+  const renderChart = () => {
+    switch (activeType) {
+      case 'bar':
+        return (
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3A" />
+            <XAxis dataKey={xAxisKey} stroke="#71717A" fontSize={12} />
+            <YAxis stroke="#71717A" fontSize={12} />
+            <Tooltip contentStyle={{ backgroundColor: '#1A1A24', border: '1px solid #2A2A3A', borderRadius: '8px' }} />
+            <Legend />
+            {yKeys.map((key, idx) => (
+              <Bar key={key} dataKey={key} fill={COLORS[idx % COLORS.length]} radius={[4, 4, 0, 0]} />
+            ))}
+          </BarChart>
+        );
+      case 'line':
+        return (
+          <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3A" />
+            <XAxis dataKey={xAxisKey} stroke="#71717A" fontSize={12} />
+            <YAxis stroke="#71717A" fontSize={12} />
+            <Tooltip contentStyle={{ backgroundColor: '#1A1A24', border: '1px solid #2A2A3A', borderRadius: '8px' }} />
+            <Legend />
+            {yKeys.map((key, idx) => (
+              <Line key={key} type="monotone" dataKey={key} stroke={COLORS[idx % COLORS.length]} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            ))}
+          </LineChart>
+        );
+      case 'pie':
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey={yKeys[0] || "value"}
+              nameKey={xAxisKey || "name"}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={{ backgroundColor: '#1A1A24', border: '1px solid #2A2A3A', borderRadius: '8px' }} />
+            <Legend />
+          </PieChart>
+        );
+      case 'scatter':
+         return (
+          <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3A" />
+            <XAxis dataKey={xAxisKey} stroke="#71717A" fontSize={12} name={xAxisKey} />
+            <YAxis dataKey={yKeys[0]} stroke="#71717A" fontSize={12} name={yKeys[0]} />
+            <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#1A1A24', border: '1px solid #2A2A3A', borderRadius: '8px' }} />
+            <Scatter name={title || 'Data'} data={data} fill={COLORS[0]} />
+          </ScatterChart>
+         );
+      case 'table':
+      default:
+        const keys = Object.keys(data[0] || {});
+        return (
+           <div className="overflow-x-auto w-full mt-4 bg-[#1A1A24] rounded-lg border border-[#2A2A3A]">
+              <table className="w-full text-sm text-left text-gray-400">
+                 <thead className="text-xs text-gray-300 uppercase bg-[#22222E]">
+                    <tr>{keys.map(k => <th key={k} className="px-4 py-3">{k}</th>)}</tr>
+                 </thead>
+                 <tbody>
+                    {data.slice(0, 10).map((row, i) => (
+                       <tr key={i} className="border-b border-[#2A2A3A]">
+                          {keys.map(k => <td key={k} className="px-4 py-2">{row[k]}</td>)}
+                       </tr>
+                    ))}
+                 </tbody>
+              </table>
+              {data.length > 10 && <div className="p-2 text-xs text-center text-gray-500">Showing 10 of {data.length} rows</div>}
+           </div>
+        );
+    }
+  };
+
+  return (
+    <div className="mt-4 w-full pt-4 border-t border-[#2A2A3A] relative group">
+      <div className="flex items-center justify-between mb-4">
+          {title ? (
+              <h4 className="text-sm font-semibold text-white">{title}</h4>
+          ) : <div />}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-[#71717A]">Type:</span>
+            <select
+               value={activeType}
+               onChange={(e) => setActiveType(e.target.value)}
+               className="bg-[#1A1A24] border border-[#2A2A3A] text-xs text-[#A1A1AA] rounded px-2 py-1 outline-none hover:border-[#3B82F6] hover:text-white transition-colors cursor-pointer"
+            >
+               <option value="bar">Bar</option>
+               <option value="line">Line</option>
+               <option value="pie">Pie</option>
+               <option value="scatter">Scatter</option>
+               <option value="table">Table</option>
+            </select>
+          </div>
+      </div>
+      {activeType !== 'table' ? (
+         <div className="w-full h-64 min-w-[300px]">
+           <ResponsiveContainer width="100%" height="100%">
+             {renderChart()}
+           </ResponsiveContainer>
+         </div>
+      ) : renderChart()}
+    </div>
+  );
 }
 
 export default ChatInterface;

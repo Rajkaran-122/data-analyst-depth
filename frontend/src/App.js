@@ -8,9 +8,13 @@ import { TopNav } from '@/components/layout/TopNav';
 // Dashboard Components
 import { KPICard } from '@/components/dashboard/KPICard';
 import { ChartContainer, ChartLegend } from '@/components/dashboard/ChartContainer';
+import ChartBuilder from '@/components/dashboard/ChartBuilder';
 
 // AI Components
 import { ChatInterface } from '@/components/ai/ChatInterface';
+
+// Pages
+import DatasetsPage from './components/dashboard/DatasetsPage';
 
 // Icons
 import {
@@ -22,11 +26,19 @@ import {
   DocumentIcon,
   RefreshIcon,
   PlusIcon,
-  SearchIcon
+  SearchIcon,
+  LogOutIcon
 } from '@/components/icons';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API_BASE = `${BACKEND_URL}/api`;
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { LoginPage } from '@/components/auth/Login';
+import { RegisterPage } from '@/components/auth/Register';
+import api from '@/lib/api';
+
+// API_BASE is handled by the api axios instance now.
+// const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// const API_BASE = `${BACKEND_URL}/api`;
 
 // ============================================================================
 // Dashboard Page - Now fetches live data
@@ -47,14 +59,14 @@ function DashboardPage() {
     setLoading(true);
     try {
       const [statsRes, activityRes, chartsRes, sourcesRes] = await Promise.all([
-        fetch(`${API_BASE}/dashboard/stats`),
-        fetch(`${API_BASE}/dashboard/activity?limit=5`),
-        fetch(`${API_BASE}/dashboard/charts/queries?range=${chartRange}`),
-        fetch(`${API_BASE}/dashboard/charts/sources`)
+        api.get('/dashboard/stats'),
+        api.get('/dashboard/activity?limit=5'),
+        api.get(`/dashboard/charts/queries?range=${chartRange}`),
+        api.get('/dashboard/charts/sources')
       ]);
 
-      if (statsRes.ok) {
-        const stats = await statsRes.json();
+      if (statsRes.data) {
+        const stats = statsRes.data;
         const iconMap = {
           analytics: AnalyticsIcon,
           dataset: DatasetIcon,
@@ -67,19 +79,16 @@ function DashboardPage() {
         })));
       }
 
-      if (activityRes.ok) {
-        const activityData = await activityRes.json();
-        setActivity(activityData.activity || []);
+      if (activityRes.data) {
+        setActivity(activityRes.data.activity || []);
       }
 
-      if (chartsRes.ok) {
-        const charts = await chartsRes.json();
-        setChartData(charts.data || []);
+      if (chartsRes.data) {
+        setChartData(chartsRes.data.data || []);
       }
 
-      if (sourcesRes.ok) {
-        const sources = await sourcesRes.json();
-        setSourceData(sources.data || []);
+      if (sourcesRes.data) {
+        setSourceData(sourcesRes.data.data || []);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -98,10 +107,9 @@ function DashboardPage() {
   const handleRangeChange = async (range) => {
     setChartRange(range);
     try {
-      const res = await fetch(`${API_BASE}/dashboard/charts/queries?range=${range}`);
-      if (res.ok) {
-        const data = await res.json();
-        setChartData(data.data || []);
+      const res = await api.get(`/dashboard/charts/queries?range=${range}`);
+      if (res.data) {
+        setChartData(res.data.data || []);
       }
     } catch (error) {
       console.error('Failed to fetch chart data:', error);
@@ -223,8 +231,8 @@ function DashboardPage() {
                   </p>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'success' || item.status === 'completed' || item.status === 'ready'
-                    ? 'bg-[#10B981]/10 text-[#10B981]'
-                    : 'bg-[#EF4444]/10 text-[#EF4444]'
+                  ? 'bg-[#10B981]/10 text-[#10B981]'
+                  : 'bg-[#EF4444]/10 text-[#EF4444]'
                   }`}>
                   {item.status}
                 </span>
@@ -242,152 +250,12 @@ function DashboardPage() {
 }
 
 // ============================================================================
-// Datasets Page - Full implementation with API integration
-// ============================================================================
-function DatasetsPage() {
-  const [datasets, setDatasets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    fetchDatasets();
-  }, []);
-
-  const fetchDatasets = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/datasets`);
-      if (res.ok) {
-        const data = await res.json();
-        setDatasets(data.datasets || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch datasets:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch(`${API_BASE}/datasets`, {
-        method: 'POST',
-        body: formData
-      });
-      if (res.ok) {
-        fetchDatasets();
-      }
-    } catch (error) {
-      console.error('Failed to upload dataset:', error);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      const res = await fetch(`${API_BASE}/datasets/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchDatasets();
-      }
-    } catch (error) {
-      console.error('Failed to delete dataset:', error);
-    }
-  };
-
-  const filteredDatasets = datasets.filter(ds =>
-    ds.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#52525B]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search datasets..."
-              className="w-full h-10 pl-10 pr-4 bg-[#1A1A24] border border-[#2A2A3A] rounded-xl text-sm text-white placeholder:text-[#52525B] focus:outline-none focus:border-[#3B82F6]"
-            />
-          </div>
-        </div>
-        <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] text-white font-medium text-sm cursor-pointer hover:opacity-90 transition-all">
-          <input type="file" accept=".csv,.xlsx,.xls,.json" onChange={handleUpload} className="hidden" />
-          <UploadIcon className="w-4 h-4" />
-          {uploading ? 'Uploading...' : 'Upload Dataset'}
-        </label>
-      </div>
-
-      {/* Datasets Grid */}
-      {loading ? (
-        <div className="flex items-center justify-center h-[40vh]">
-          <div className="text-[#71717A]">Loading datasets...</div>
-        </div>
-      ) : filteredDatasets.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDatasets.map((dataset) => (
-            <div
-              key={dataset.id}
-              className="bg-[#12121A] border border-[#1E1E2A] rounded-2xl p-5 hover:border-[#3B82F6]/50 transition-all"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-2 rounded-lg bg-[#3B82F6]/10">
-                  <DatasetIcon className="w-5 h-5 text-[#3B82F6]" />
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${dataset.status === 'ready' ? 'bg-[#10B981]/10 text-[#10B981]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'
-                  }`}>
-                  {dataset.status}
-                </span>
-              </div>
-              <h3 className="text-sm font-semibold text-white mb-1 truncate">{dataset.name}</h3>
-              <p className="text-xs text-[#71717A] mb-4">{dataset.filename}</p>
-              <div className="flex items-center gap-4 text-xs text-[#52525B]">
-                <span>{dataset.row_count?.toLocaleString()} rows</span>
-                <span>{dataset.column_count} cols</span>
-                <span>{(dataset.size_bytes / 1024).toFixed(1)} KB</span>
-              </div>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[#1E1E2A]">
-                <button className="flex-1 py-2 rounded-lg bg-[#1A1A24] text-xs text-[#A1A1AA] hover:bg-[#22222E] hover:text-white transition-all">
-                  Preview
-                </button>
-                <button
-                  onClick={() => handleDelete(dataset.id)}
-                  className="flex-1 py-2 rounded-lg bg-[#EF4444]/10 text-xs text-[#EF4444] hover:bg-[#EF4444]/20 transition-all"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center h-[40vh] text-center">
-          <DatasetIcon className="w-16 h-16 mb-4 text-[#3B82F6]/50" />
-          <h2 className="text-xl font-semibold text-white mb-2">No Datasets</h2>
-          <p className="text-sm text-[#71717A] mb-4">Upload your first dataset to get started</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ============================================================================
 // Analytics Page - Full implementation
 // ============================================================================
 function AnalyticsPage() {
   const [trends, setTrends] = useState([]);
   const [insights, setInsights] = useState(null);
+  const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -396,19 +264,22 @@ function AnalyticsPage() {
 
   const fetchAnalytics = async () => {
     try {
-      const [trendsRes, insightsRes] = await Promise.all([
-        fetch(`${API_BASE}/analytics/trends?period=30d`),
-        fetch(`${API_BASE}/analytics/insights`)
+      const [trendsRes, insightsRes, datasetsRes] = await Promise.all([
+        api.get('/analytics/trends?period=30d'),
+        api.get('/analytics/insights'),
+        api.get('/datasets')
       ]);
 
-      if (trendsRes.ok) {
-        const data = await trendsRes.json();
-        setTrends(data.data || []);
+      if (trendsRes.data) {
+        setTrends(trendsRes.data.data || []);
       }
 
-      if (insightsRes.ok) {
-        const data = await insightsRes.json();
-        setInsights(data);
+      if (insightsRes.data) {
+        setInsights(insightsRes.data);
+      }
+
+      if (datasetsRes.data) {
+        setDatasets(datasetsRes.data.datasets || []);
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
@@ -473,6 +344,9 @@ function AnalyticsPage() {
         </div>
       </ChartContainer>
 
+      {/* Custom Chart Builder */}
+      <ChartBuilder datasets={datasets} />
+
       {/* Insights & Recommendations */}
       {insights && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -498,10 +372,10 @@ function AnalyticsPage() {
               {insights.recommendations?.map((rec, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-[#1A1A24] border border-[#1E1E2A]">
                   <div className={`px-2 py-1 rounded text-xs font-medium ${rec.priority === 'high' || rec.priority === 'critical'
-                      ? 'bg-[#EF4444]/10 text-[#EF4444]'
-                      : rec.priority === 'medium'
-                        ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
-                        : 'bg-[#10B981]/10 text-[#10B981]'
+                    ? 'bg-[#EF4444]/10 text-[#EF4444]'
+                    : rec.priority === 'medium'
+                      ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                      : 'bg-[#10B981]/10 text-[#10B981]'
                     }`}>
                     {rec.priority}
                   </div>
@@ -533,10 +407,9 @@ function ReportsPage() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch(`${API_BASE}/reports`);
-      if (res.ok) {
-        const data = await res.json();
-        setReports(data.reports || []);
+      const res = await api.get('/reports');
+      if (res.data) {
+        setReports(res.data.reports || []);
       }
     } catch (error) {
       console.error('Failed to fetch reports:', error);
@@ -548,16 +421,12 @@ function ReportsPage() {
   const generateReport = async () => {
     setGenerating(true);
     try {
-      const res = await fetch(`${API_BASE}/reports/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: `Analysis Report - ${new Date().toLocaleDateString()}`,
-          query: 'Analyze overall data trends and generate insights',
-          report_type: 'summary'
-        })
+      const res = await api.post('/reports/generate', {
+        title: `Analysis Report - ${new Date().toLocaleDateString()}`,
+        query: 'Analyze overall data trends and generate insights',
+        report_type: 'summary'
       });
-      if (res.ok) {
+      if (res.data) {
         fetchReports();
       }
     } catch (error) {
@@ -569,9 +438,9 @@ function ReportsPage() {
 
   const exportReport = async (id, format) => {
     try {
-      const res = await fetch(`${API_BASE}/reports/${id}/export?format=${format}`);
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.get(`/reports/${id}/export?format=${format}`);
+      if (res.data) {
+        const data = res.data;
         // Create download
         const content = format === 'json' ? JSON.stringify(data.content, null, 2) : data.content;
         const blob = new Blob([content], { type: data.mime_type || 'text/plain' });
@@ -680,10 +549,9 @@ function SettingsPage() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`${API_BASE}/settings`);
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data.settings);
+      const res = await api.get('/settings');
+      if (res.data) {
+        setSettings(res.data.settings);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -695,14 +563,9 @@ function SettingsPage() {
   const updateSetting = async (key, value) => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [key]: value })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data.settings);
+      const res = await api.put('/settings', { [key]: value });
+      if (res.data) {
+        setSettings(res.data.settings);
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
@@ -799,17 +662,72 @@ function SettingsPage() {
       {/* API Keys */}
       <div className="bg-[#12121A] border border-[#1E1E2A] rounded-2xl p-6">
         <h3 className="text-sm font-semibold text-white mb-4">API Keys</h3>
-        <div className="space-y-3">
+        <div className="space-y-3 mb-4">
           {Object.entries(settings?.api_keys || {}).map(([name, value]) => (
             <div key={name} className="flex items-center justify-between p-3 rounded-lg bg-[#1A1A24]">
               <span className="text-sm text-white">{name}</span>
-              <span className="text-sm text-[#71717A] font-mono">{value}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-[#71717A] font-mono">{value}</span>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await api.delete(`/settings/api-keys/${name}`);
+                      if (res.data) fetchSettings();
+                    } catch (e) { console.error(e); }
+                  }}
+                  className="text-[#EF4444] hover:text-[#EF4444]/80 px-2 py-1 rounded text-xs"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
           {Object.keys(settings?.api_keys || {}).length === 0 && (
             <p className="text-sm text-[#71717A]">No API keys configured</p>
           )}
         </div>
+
+        {/* Add Key Form */}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const name = formData.get('name');
+            const value = formData.get('value');
+            if (!name || !value) return;
+
+            try {
+              const res = await api.post('/settings/api-keys', { key_name: name, key_value: value });
+              if (res.data) {
+                e.target.reset();
+                fetchSettings();
+              }
+            } catch (error) {
+              console.error('Failed to add API key:', error);
+            }
+          }}
+          className="flex gap-2"
+        >
+          <input
+            name="name"
+            placeholder="Key Name (e.g. GOOGLE_API_KEY)"
+            className="flex-1 bg-[#1A1A24] border border-[#2A2A3A] rounded-lg px-3 py-2 text-sm text-white focus:border-[#3B82F6] outline-none"
+            required
+          />
+          <input
+            name="value"
+            type="password"
+            placeholder="Key Value"
+            className="flex-1 bg-[#1A1A24] border border-[#2A2A3A] rounded-lg px-3 py-2 text-sm text-white focus:border-[#3B82F6] outline-none"
+            required
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-[#3B82F6] text-white rounded-lg text-sm font-medium hover:bg-[#2563EB] transition-colors"
+          >
+            Add Key
+          </button>
+        </form>
       </div>
 
       {saving && (
@@ -822,7 +740,8 @@ function SettingsPage() {
 // ============================================================================
 // Workspace Page Component
 // ============================================================================
-function WorkspacePage({ onSendMessage, messages, isLoading }) {
+function WorkspacePage({ onSendMessage, messages, isLoading, onLoadSession, onNewSession }) {
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [question, setQuestion] = useState('');
 
@@ -903,6 +822,8 @@ function WorkspacePage({ onSendMessage, messages, isLoading }) {
           messages={messages}
           onSendMessage={onSendMessage}
           isLoading={isLoading}
+          onLoadSession={onLoadSession}
+          onNewSession={onNewSession}
         />
       </div>
     </div>
@@ -912,7 +833,7 @@ function WorkspacePage({ onSendMessage, messages, isLoading }) {
 // ============================================================================
 // AI Chat Page Component
 // ============================================================================
-function AIChatPage({ messages, onSendMessage, isLoading }) {
+function AIChatPage({ messages, onSendMessage, isLoading, onLoadSession, onNewSession }) {
   return (
     <div className="h-[calc(100vh-140px)]">
       <ChatInterface
@@ -920,38 +841,41 @@ function AIChatPage({ messages, onSendMessage, isLoading }) {
         onSendMessage={onSendMessage}
         isLoading={isLoading}
         placeholder="Ask anything about your data..."
+        onLoadSession={onLoadSession}
+        onNewSession={onNewSession}
       />
     </div>
   );
 }
 
 // ============================================================================
-// Main App Component
+// Protected Layout
 // ============================================================================
-function App() {
+function ProtectedLayout() {
+  const { user, logout, loading } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [backendHealthy, setBackendHealthy] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
 
-  const hasBackendUrl = useMemo(() => Boolean(BACKEND_URL), []);
+  // Health check
+  const [backendHealthy, setBackendHealthy] = useState(true);
 
   // Health check
   useEffect(() => {
     const checkHealth = async () => {
-      if (!hasBackendUrl) return;
       try {
-        const res = await fetch(`${API_BASE}/health`);
-        setBackendHealthy(res.ok);
-      } catch {
+        const res = await api.get(`/health`);
+        setBackendHealthy(true);
+      } catch (err) {
         setBackendHealthy(false);
       }
     };
     checkHealth();
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
-  }, [hasBackendUrl]);
+  }, []);
 
   const handleSendMessage = useCallback(async (content, formData = null) => {
     setMessages(prev => [...prev, { role: 'user', content }]);
@@ -959,21 +883,27 @@ function App() {
 
     try {
       let response;
+      
+      // Auto-assign session ID
+      let currentSessionId = sessionId;
+      if (!currentSessionId) {
+        currentSessionId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substring(2);
+        setSessionId(currentSessionId);
+      }
 
       if (formData) {
-        response = await fetch(`${API_BASE}/`, {
-          method: 'POST',
-          body: formData,
+        response = await api.post('/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
-        response = await fetch(`${API_BASE}/analyze`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: content, context: {} }),
+        response = await api.post('/analyze', {
+          question: content,
+          context: {},
+          session_id: currentSessionId
         });
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       let replyContent = '';
       if (data.explanation) {
@@ -991,7 +921,11 @@ function App() {
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: replyContent,
-        showActions: true
+        chartData: data.result?.chartData || data.output?.chartData || null,
+        chartConfig: data.result?.chartConfig || data.output?.chartConfig || null,
+        usage: data.usage || null,
+        showActions: true,
+        queryId: data.query_id || null
       }]);
     } catch (error) {
       setMessages(prev => [...prev, {
@@ -1001,6 +935,16 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  }, [sessionId]);
+
+  const handleLoadSession = useCallback((newSessionId, historicalMessages) => {
+    setSessionId(newSessionId);
+    setMessages(historicalMessages);
+  }, []);
+
+  const handleNewSession = useCallback(() => {
+    setSessionId(null);
+    setMessages([]);
   }, []);
 
   const getPageTitle = () => {
@@ -1016,6 +960,18 @@ function App() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <div className="text-[#3B82F6] text-xl font-semibold">Loading Data Bridge...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0A0A0F]">
       {/* Sidebar */}
@@ -1027,14 +983,34 @@ function App() {
       />
 
       {/* Main Content */}
-      <main
-        className={`min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}
-      >
-        {/* Top Navigation */}
-        <TopNav
-          title={getPageTitle()}
-          subtitle={backendHealthy === false ? 'Backend disconnected' : undefined}
-        />
+      <main className={`min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
+        {/* Top Navigation Overlay */}
+        <div className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-[#0A0A0F] border-b border-[#1E1E2A]">
+          <div>
+            <h1 className="text-xl font-bold text-white">{getPageTitle()}</h1>
+            {!backendHealthy && <p className="text-xs text-[#EF4444] mt-1">Backend disconnected</p>}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 pr-4 border-r border-[#1E1E2A]">
+              <div className="text-right">
+                <p className="text-sm font-medium text-white">{user.name}</p>
+                <p className="text-xs text-[#71717A] capitalize">{user.role}</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#3B82F6] to-[#8B5CF6] flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/20">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            </div>
+            
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-[#EF4444]/10 transition-colors"
+            >
+              <LogOutIcon className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
+        </div>
 
         {/* Page Content */}
         <div className="p-6">
@@ -1044,6 +1020,8 @@ function App() {
               messages={messages}
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
+              onLoadSession={handleLoadSession}
+              onNewSession={handleNewSession}
             />
           )}
           {activeTab === 'ai-chat' && (
@@ -1051,6 +1029,8 @@ function App() {
               messages={messages}
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
+              onLoadSession={handleLoadSession}
+              onNewSession={handleNewSession}
             />
           )}
           {activeTab === 'datasets' && <DatasetsPage />}
@@ -1060,6 +1040,23 @@ function App() {
         </div>
       </main>
     </div>
+  );
+}
+
+// ============================================================================
+// Main Application Setup
+// ============================================================================
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/*" element={<ProtectedLayout />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

@@ -22,7 +22,7 @@ from starlette.responses import Response
 import redis
 
 from app.config import settings
-from app.database import engine, Base, init_db
+from app.database import engine
 from app.core.exceptions import AppException
 from app.api import auth, dashboard, datasets, analytics, reports, workspaces, explorer, ai, settings_api
 
@@ -57,14 +57,13 @@ async def lifespan(app: FastAPI):
     logger.info(f"Environment: {settings.environment}")
     logger.info(f"Debug mode: {settings.debug}")
     
-    # Initialize database tables (for development)
-    # In production, use Alembic migrations instead
-    if settings.is_development:
-        try:
-            init_db()
-            logger.info("Database tables initialized")
-        except Exception as e:
-            logger.warning(f"Database initialization skipped: {e}")
+    # Database initialization disabled - use Alembic migrations instead
+    # if settings.is_development:
+    #     try:
+    #         init_db()
+    #         logger.info("Database tables initialized")
+    #     except Exception as e:
+    #         logger.warning(f"Database initialization skipped: {e}")
     
     # Test Redis connection (optional)
     try:

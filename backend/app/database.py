@@ -17,6 +17,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 # Create Base class for declarative models
+# Use a single instance across the entire app
 Base = declarative_base()
 
 # Synchronous engine configuration
@@ -69,7 +70,15 @@ def init_db() -> None:
     Should be called once at application startup or during migrations.
     """
     # Import all models to ensure they're registered with Base
-    from app.models import user, dataset, workspace, report, query, settings_model, activity
+    # Import locally to avoid circular dependencies at module level
+    from app.models.user import User
+    from app.models.dataset import Dataset
+    from app.models.workspace import Workspace
+    from app.models.report import Report
+    from app.models.query import Query
+    from app.models.settings_model import UserSettings, ApiKey
+    from app.models.activity import Activity
+    # from app.models.refresh_token import RefreshToken # If exists
     
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")

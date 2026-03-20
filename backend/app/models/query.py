@@ -27,6 +27,8 @@ class Query(Base):
         execution_time_ms: Query execution time in milliseconds
         status: Query status (completed, failed)
         source: Query source (explorer, chat, api)
+        session_id: Conversation grouping identifier
+        feedback: User polling on response positive/negative (1 or -1, 0 is undecided)
         created_at: Creation timestamp
     """
     
@@ -41,6 +43,8 @@ class Query(Base):
     execution_time_ms = Column(Integer, nullable=True)
     status = Column(String(50), default="completed", nullable=False)
     source = Column(String(50), default="api", nullable=False)
+    session_id = Column(String(100), nullable=True, index=True)
+    feedback = Column(Integer, default=0, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
@@ -51,6 +55,7 @@ class Query(Base):
     __table_args__ = (
         Index("idx_queries_user_id", "user_id"),
         Index("idx_queries_dataset_id", "dataset_id"),
+        Index("idx_queries_session_id", "session_id"),
         Index("idx_queries_created_at", "created_at"),
         Index("idx_queries_status", "status"),
     )
@@ -70,5 +75,7 @@ class Query(Base):
             "execution_time_ms": self.execution_time_ms,
             "status": self.status,
             "source": self.source,
+            "session_id": self.session_id,
+            "feedback": self.feedback,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

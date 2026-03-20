@@ -16,17 +16,6 @@ from app.database import Base
 class User(Base):
     """
     User model for authentication and authorization.
-    
-    Attributes:
-        id: Unique identifier (UUID)
-        email: User email address (unique)
-        password_hash: Bcrypt hashed password
-        full_name: User's display name
-        is_active: Account active status
-        is_admin: Admin role flag
-        created_at: Account creation timestamp
-        updated_at: Last update timestamp
-        last_login: Last successful login timestamp
     """
     
     __tablename__ = "users"
@@ -42,6 +31,7 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     
     # Relationships
+    # Use string references to avoid circular imports during module load
     datasets = relationship("Dataset", back_populates="user", cascade="all, delete-orphan")
     workspaces = relationship("Workspace", back_populates="user", cascade="all, delete-orphan")
     reports = relationship("Report", back_populates="user", cascade="all, delete-orphan")

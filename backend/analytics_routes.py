@@ -57,8 +57,8 @@ async def get_analytics_trends(
             })
     
     # Calculate summary
-    values = [d.get(metric, d.get("queries", 0)) for d in data]
-    total = sum(values)
+    values: List[int] = [int(d.get(metric, d.get("queries", 0))) for d in data]
+    total: int = sum(values)
     
     return {
         "metric": metric,
@@ -69,7 +69,7 @@ async def get_analytics_trends(
             "average": total // max(len(data), 1),
             "peak": max(values) if values else 0,
             "min": min(values) if values else 0,
-            "growth_rate": round(random.uniform(5, 25), 1)
+            "growth_rate": float(round(float(random.uniform(5, 25)), 1))
         }
     }
 
@@ -107,8 +107,8 @@ async def get_insights_summary() -> Dict[str, Any]:
             all_insights.append(f"Your datasets contain {total_rows:,} total rows")
     
     # Calculate success rate for recommendations
-    success_count = sum(1 for log in logs if log.status == "success")
-    success_rate = (success_count / len(logs) * 100) if logs else 100
+    success_count: int = sum(1 for log in logs if log.status == "success")
+    success_rate: float = (success_count / len(logs) * 100) if logs else 100.0
     
     recommendations = [
         {
@@ -143,15 +143,18 @@ async def get_insights_summary() -> Dict[str, Any]:
             "icon": "warning"
         })
     
+    # Last 10 insights
+    recent_insights: List[str] = all_insights[-10:] if len(all_insights) >= 10 else all_insights
+
     return {
         "total_insights": len(all_insights),
-        "insights": all_insights[-10:],  # Last 10 insights
+        "insights": recent_insights,
         "recommendations": recommendations,
         "stats": {
             "datasets_analyzed": len(datasets),
             "queries_processed": stats["total_queries"],
             "reports_generated": len(reports),
-            "success_rate": round(success_rate, 1)
+            "success_rate": float(round(float(success_rate), 1))
         }
     }
 
@@ -231,8 +234,8 @@ async def get_analytics_summary() -> Dict[str, Any]:
             "total_datasets": len(datasets),
             "total_reports": len(reports),
             "total_insights": stats["total_insights"],
-            "success_rate": round(success_rate, 1),
-            "data_size_mb": round(total_data_size / (1024 * 1024), 2),
+            "success_rate": float(round(float(success_rate), 1)),
+            "data_size_mb": float(round(float(total_data_size / (1024 * 1024)), 2)),
             "total_rows": total_rows
         },
         "trends": {

@@ -25,24 +25,28 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 try:
-    from agent_core import DataAnalystAgent, AgentConfig, QuestionRequest, AnalysisResponse
+    from agent_core import DataAnalystAgent, AgentConfig
     AGENT_AVAILABLE = True
 except ImportError:
     AGENT_AVAILABLE = False
     logger = logging.getLogger(__name__)
     logger.warning("agent_core.py not found. AI features will be limited.")
 
-    # Mock classes if missing
-    class QuestionRequest(BaseModel):
-        question: str
-        context: Dict[str, Any] = {}
+# Define models directly here to avoid ImportErrors above
+class QuestionRequest(BaseModel):
+    question: str
+    context: Dict[str, Any] = {}
+    session_id: Optional[str] = None
 
-    class AnalysisResponse(BaseModel):
-        question: str
-        code_generated: str
-        result: Any
-        explanation: str
-        status: str
+class AnalysisResponse(BaseModel):
+    question: str
+    code_generated: str
+    result: Any
+    explanation: str
+    status: str
+    usage: Optional[Any] = None
+    session_id: Optional[str] = None
+    query_id: Optional[str] = None
 
 router = APIRouter(prefix="/analyze", tags=["AI Analyst"])
 logger = logging.getLogger(__name__)
@@ -54,12 +58,11 @@ if AGENT_AVAILABLE:
 else:
     agent = None
 
-
 @router.post("", response_model=AnalysisResponse)
 async def analyze_question(
     request: QuestionRequest,
     db: Session = Depends(get_db),
-    current_user: Optional[object] = Depends(OptionalUser),
+    current_user: Optional[Any] = Depends(OptionalUser),
 ):
     """
     Analyze a data question using the AI agent.
@@ -74,9 +77,20 @@ async def analyze_question(
             query_text=request.question,
             status="processing",
             source="ai_agent",
+            session_id=request.session_id
         )
         db.add(query_log)
         db.commit()
+        
+        # Inject API keys from DB into environment for agent_core
+        try:
+            from app.models.settings_model import ApiKey
+            from app.core.security import decrypt_api_key
+            user_keys = db.query(ApiKey).filter(ApiKey.user_id == current_user.id).all()
+            for k in user_keys:
+                os.environ[k.key_name] = decrypt_api_key(k.key_value_encrypted)
+        except Exception as e:
+            logger.warning(f"Could not load user API keys: {e}")
     
     try:
         # Check if agent is available
@@ -94,28 +108,80 @@ async def analyze_question(
             )
         else:
             # Prepare context
-            # If dataset_id is in context, load its path
             if request.context and "dataset_id" in request.context:
                 dataset_id = request.context["dataset_id"]
                 dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
                 if dataset and os.path.exists(dataset.file_path):
-                    # We need to temporarily symlink or copy the file to 'data.csv' 
-                    # because the agent expects it in the CWD or we update agent logic.
-                    # Best approach: Pass file path in context and update agent prompt if possible.
-                    # Or just rely on agent being smart.
-                    # For compatibility with legacy server.py assumption (agent reads 'data.csv'):
-                    # We might need to handle file context carefully.
-                    
-                    # NOTE: In a real production system, we'd pass the dataframe or file path cleanly.
-                    # Here we adhere to the existing agent_core logic which might look for local files.
                     pass
             
-            # Use the agent
-            result = await agent.process_question(
-                question=request.question, 
-                context=request.context
-            )
-            response = result # wrapper already returns compatible dict/object
+            # Multi-turn Context Resolution
+            augmented_question = request.question
+            if request.session_id:
+                past_queries = db.query(QueryModel).filter(
+                    QueryModel.session_id == request.session_id,
+                    QueryModel.status == "completed"
+                ).order_by(QueryModel.created_at.desc()).limit(3).all()
+                
+                if past_queries:
+                    history = "Previous conversation sequence:\n"
+                    # Reverse because we queried desc()
+                    for pq in reversed(past_queries):
+                        history += f"User: {pq.query_text}\n"
+                        resp_text = "System provided a chart or data table response."
+                        if pq.response:
+                            try:
+                                resp_data = json.loads(pq.response)
+                                summary = resp_data.get('summary', '') or resp_data.get('explanation', '')
+                                if summary:
+                                    resp_text = summary
+                            except:
+                                pass
+                        history += f"System: {resp_text}\n\n"
+                    
+                    augmented_question = history + f"Current Task/Question: {request.question}"
+            
+            # 5-minute Caching Check
+            from datetime import timedelta
+            five_mins_ago = datetime.utcnow() - timedelta(minutes=5)
+            
+            cached_query = db.query(QueryModel).filter(
+                QueryModel.user_id == current_user.id,
+                QueryModel.query_text == augmented_question,
+                QueryModel.status == "completed",
+                QueryModel.created_at >= five_mins_ago
+            ).order_by(QueryModel.created_at.desc()).first()
+            
+            if cached_query and cached_query.response:
+                logger.info(f"Cache hit! Reusing AI output from {cached_query.id}")
+                cached_data = json.loads(cached_query.response)
+                response = AnalysisResponse(
+                    question=request.question,
+                    code_generated="# Served from cache",
+                    result=cached_data,
+                    explanation=cached_data.get("summary", "Cached response."),
+                    status="success",
+                    usage={"provider": "cache", "total_tokens": 0},
+                    session_id=request.session_id,
+                    query_id=str(query_log.id) if query_log else None
+                )
+            else:
+                # Use the agent
+                result = await agent.process_question(
+                    question=augmented_question, 
+                    context=request.context
+                )
+                
+                # Map standard agent payload to AnalysisResponse
+                response = AnalysisResponse(
+                    question=request.question, # maintain original question reference
+                    code_generated=result.get("code", ""),
+                    result=result.get("output", {}),
+                    explanation=result.get("explanation", ""),
+                    status="success" if result.get("execution_success") else "error",
+                    usage=result.get("usage", None),
+                    session_id=request.session_id,
+                    query_id=str(query_log.id) if query_log else None
+                )
             
         # Update log
         if query_log:

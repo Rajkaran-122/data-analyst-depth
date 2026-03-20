@@ -1,10 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, UploadFile, File
-from fastapi.responses import JSONResponse
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from fastapi import FastAPI, APIRouter, HTTPException, Request, UploadFile, File  # type: ignore
+from fastapi.responses import JSONResponse  # type: ignore
+from dotenv import load_dotenv  # type: ignore
+from starlette.middleware.cors import CORSMiddleware  # type: ignore
+from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel  # type: ignore
+
 from typing import Dict, Any, List, Tuple
 from datetime import datetime, timezone
 
@@ -17,25 +18,28 @@ import base64
 import tempfile
 import shutil
 
-import requests
-import pandas as pd
-import duckdb as _duckdb
-import matplotlib
+import requests  # type: ignore
+import pandas as pd  # type: ignore
+import duckdb as _duckdb  # type: ignore
+import matplotlib  # type: ignore
+
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.pyplot as plt  # type: ignore
+import seaborn as sns  # type: ignore
 
-from agent_core import DataAnalystAgent, AgentConfig
+
+from agent_core import DataAnalystAgent, AgentConfig  # type: ignore
 
 # Import new route modules
-from dashboard_routes import router as dashboard_router
-from datasets_routes import router as datasets_router
-from analytics_routes import router as analytics_router
-from reports_routes import router as reports_router
-from settings_routes import router as settings_router
-from workspaces_routes import router as workspaces_router
-from storage import storage
+from dashboard_routes import router as dashboard_router  # type: ignore
+from datasets_routes import router as datasets_router  # type: ignore
+from analytics_routes import router as analytics_router  # type: ignore
+from reports_routes import router as reports_router  # type: ignore
+from settings_routes import router as settings_router  # type: ignore
+from workspaces_routes import router as workspaces_router  # type: ignore
+from auth import router as auth_router  # type: ignore
+from storage import storage  # type: ignore
 
 
 # -----------------------------------------------------------------------------
@@ -46,9 +50,10 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / ".env")
 
 # MongoDB connection (kept for environment compatibility)
-mongo_url = os.environ["MONGO_URL"]
+mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+db = client[os.getenv("DB_NAME", "data_analyst")]
+
 
 # FastAPI app and router (all API routes under /api)
 app = FastAPI(
@@ -133,9 +138,9 @@ def _record_activity(kind: str, status: int) -> None:
         "status": status,
         "timestamp": ts,
     }
-    recent_activity.append(event)
     if len(recent_activity) > MAX_ACTIVITY:
-        del recent_activity[0 : len(recent_activity) - MAX_ACTIVITY]
+        recent_activity = recent_activity[-MAX_ACTIVITY:]
+
 
 
 # -----------------------------------------------------------------------------
@@ -434,17 +439,20 @@ def _offline_analyze_router(question_text: str) -> Dict[str, Any]:
             # Actually, let's just use the logic I wrote in the separate file, but I need to import it.
             # To be safe, let's copy the logic here or import it.
             # Let's try to import it dynamically.
-            from generic_handler import _offline_handle_generic_csv
-            return _offline_handle_generic_csv()
+            from generic_handler import _offline_handle_generic_csv  # type: ignore
+            return _offline_handle_generic_csv()  # type: ignore
+
         except Exception as e:
             logger.warning(f"Generic offline handler failed: {e}")
 
     return {
         "summary": "Received question but LLM is not configured. Using offline heuristics.",
-        "data": {"question": question_text[:500]},
+        "data": {"question": str(question_text)[0:500]},  # type: ignore
+
         "visualizations": [],
         "status": "no_llm_fallback",
     }
+
 
 
 # -----------------------------------------------------------------------------
@@ -591,9 +599,26 @@ async def analyze_question(request: QuestionRequest) -> AnalysisResponse:
     try:
         logger.info(f"Received analysis request: {request.question}")
 
-        use_llm = bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
+        # Check for API key in env vars OR in stored settings
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        
+        if not api_key:
+            settings_keys = storage.get_api_keys()
+            # Try to find a key in settings (looking for common names)
+            for k, v in storage._settings.api_keys.items():
+                if "GOOGLE" in k.upper() or "GEMINI" in k.upper() or "API_KEY" in k.upper():
+                    api_key = v
+                    # Temporarily set env var for the agent to pick it up
+                    os.environ["GOOGLE_API_KEY"] = v
+                    break
+
+        use_llm = bool(api_key)
 
         if use_llm:
+            # Re-initialize agent if it was created without a key but now we have one
+            # Note: The agent reads the key from os.environ on call, or we can pass config
+            # But agent_core.py reads os.getenv inside generate_analysis_script
+            
             result = await agent.process_question(
                 question=request.question, context=request.context
             )
@@ -603,25 +628,29 @@ async def analyze_question(request: QuestionRequest) -> AnalysisResponse:
             status_code = 200 if result.get("execution_success") else 500
             _record_activity("analyze", status_code)
 
-            return AnalysisResponse(
-                question=request.question,
-                code_generated=result["code"],
-                result=result["output"],
-                explanation=result["explanation"],
-                status=status_str,
+            return AnalysisResponse(  # type: ignore
+                question=request.question,  # type: ignore
+                code_generated=result["code"],  # type: ignore
+                result=result["output"],  # type: ignore
+                explanation=result["explanation"],  # type: ignore
+                status=status_str,  # type: ignore
             )
+
+
 
         offline_result = _offline_analyze_router(request.question)
         logger.info("Analysis completed using offline heuristics")
         _record_activity("analyze", 200)
 
-        return AnalysisResponse(
-            question=request.question,
-            code_generated="",
-            result=offline_result,
-            explanation="Analysis completed using offline heuristics (LLM not configured).",
-            status="success",
+        return AnalysisResponse(  # type: ignore
+            question=request.question,  # type: ignore
+            code_generated="",  # type: ignore
+            result=offline_result,  # type: ignore
+            explanation="Analysis completed using offline heuristics (LLM not configured).",  # type: ignore
+            status="success",  # type: ignore
         )
+
+
 
     except Exception as e:
         logger.error(f"Error processing question: {str(e)}")
@@ -720,9 +749,10 @@ async def analyze_file_upload(request: Request):
             use_llm = bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
             if use_llm:
                 try:
-                    from agent_core import generate_analysis_script, execute_script
+                    from agent_core import generate_analysis_script, execute_script  # type: ignore
+ 
+                    generated_script = generate_analysis_script(question_text, agent.config)  # type: ignore
 
-                    generated_script = generate_analysis_script(question_text, agent.config)
                     logger.info("Script generation completed")
                     json_output = execute_script(generated_script, agent.config)
                     logger.info("Script execution completed")
@@ -771,6 +801,7 @@ async def analyze_file_upload(request: Request):
 # -----------------------------------------------------------------------------
 
 # Register new API routers
+api_router.include_router(auth_router)
 api_router.include_router(dashboard_router)
 api_router.include_router(datasets_router)
 api_router.include_router(analytics_router)

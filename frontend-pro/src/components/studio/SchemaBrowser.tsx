@@ -1,7 +1,5 @@
-import React from 'react';
+import { useState } from 'react';
 import { Database, Table, Columns, ChevronRight, ChevronDown } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Assuming Shadcn scroll-area exists or using native for now
-import { cn } from '@/lib/utils';
 
 // Mock Schema - In real app, fetch from useQuery
 const mockSchema = [
@@ -22,7 +20,8 @@ const mockSchema = [
 ];
 
 export function SchemaBrowser() {
-    const [expanded, setExpanded] = React.useState<Record<string, boolean>>({ 'public': true });
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({ 'public': true });
+
 
     const toggle = (key: string) => {
         setExpanded(prev => ({ ...prev, [key]: !prev[key] }));

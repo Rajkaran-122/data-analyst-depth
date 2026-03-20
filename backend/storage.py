@@ -21,18 +21,33 @@ def _now_iso() -> str:
 class Dataset:
     """Represents an uploaded dataset."""
     id: str
+    user_id: str
     name: str
     filename: str
     size_bytes: int
     row_count: int
     column_count: int
-    columns: List[Dict[str, str]]  # [{name, dtype}]
+    columns: List[Dict[str, Any]]  # [{name, dtype, null_percentage, sample_values}]
     preview: List[Dict[str, Any]]  # First few rows
     uploaded_at: str
     status: str = "ready"
     
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Convert Dataset to dictionary."""
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "filename": self.filename,
+            "size_bytes": self.size_bytes,
+            "row_count": self.row_count,
+            "column_count": self.column_count,
+            "columns": self.columns,
+            "preview": self.preview,
+            "uploaded_at": self.uploaded_at,
+            "status": self.status
+        }
+
 
 
 @dataclass
@@ -48,7 +63,17 @@ class Report:
     status: str = "completed"
     
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Convert Report to dictionary."""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "dataset_id": self.dataset_id,
+            "query": self.query,
+            "summary": self.summary,
+            "insights": self.insights,
+            "created_at": self.created_at,
+            "status": self.status
+        }
 
 
 @dataclass
@@ -62,7 +87,15 @@ class QueryLog:
     timestamp: str
     
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Convert QueryLog to dictionary."""
+        return {
+            "id": self.id,
+            "query": self.query,
+            "dataset_id": self.dataset_id,
+            "response_time_ms": self.response_time_ms,
+            "status": self.status,
+            "timestamp": self.timestamp
+        }
 
 
 @dataclass
@@ -78,7 +111,17 @@ class Settings:
     api_keys: Dict[str, str] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Convert Settings to dictionary."""
+        return {
+            "theme": self.theme,
+            "language": self.language,
+            "notifications_enabled": self.notifications_enabled,
+            "auto_refresh": self.auto_refresh,
+            "refresh_interval": self.refresh_interval,
+            "default_chart_type": self.default_chart_type,
+            "timezone": self.timezone,
+            "api_keys": self.api_keys
+        }
 
 
 @dataclass
@@ -93,7 +136,16 @@ class Workspace:
     updated_at: str
     
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Convert Workspace to dictionary."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "color": self.color,
+            "dataset_ids": self.dataset_ids,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
+        }
 
 
 class StorageManager:
@@ -129,18 +181,21 @@ class StorageManager:
     
     def add_dataset(
         self,
+        user_id: str,
         name: str,
         filename: str,
         size_bytes: int,
         row_count: int,
         column_count: int,
-        columns: List[Dict[str, str]],
+        columns: List[Dict[str, Any]],
         preview: List[Dict[str, Any]]
     ) -> Dataset:
         """Add a new dataset to storage."""
-        dataset_id = str(uuid.uuid4())[:8]
+        uid_str: str = str(uuid.uuid4())
+        dataset_id = uid_str[:8]
         dataset = Dataset(
             id=dataset_id,
+            user_id=user_id,
             name=name,
             filename=filename,
             size_bytes=size_bytes,
@@ -158,14 +213,23 @@ class StorageManager:
         """Get a dataset by ID."""
         return self._datasets.get(dataset_id)
     
-    def list_datasets(self) -> List[Dataset]:
-        """List all datasets."""
+    def list_datasets(self, user_id: Optional[str] = None) -> List[Dataset]:
+        """List all datasets. Optionally filter by user_id."""
+        if user_id:
+            return [ds for ds in self._datasets.values() if ds.user_id == user_id]
         return list(self._datasets.values())
     
     def delete_dataset(self, dataset_id: str) -> bool:
         """Delete a dataset by ID."""
         if dataset_id in self._datasets:
-            del self._datasets[dataset_id]
+            self._datasets.pop(dataset_id, None)
+            return True
+        return False
+        
+    def rename_dataset(self, dataset_id: str, new_name: str) -> bool:
+        """Rename an existing dataset."""
+        if dataset_id in self._datasets:
+            self._datasets[dataset_id].name = new_name
             return True
         return False
     
@@ -182,7 +246,8 @@ class StorageManager:
         dataset_id: Optional[str] = None
     ) -> Report:
         """Add a new report to storage."""
-        report_id = str(uuid.uuid4())[:8]
+        uid_str: str = str(uuid.uuid4())
+        report_id = uid_str[:8]
         report = Report(
             id=report_id,
             title=title,
@@ -216,7 +281,8 @@ class StorageManager:
         dataset_id: Optional[str] = None
     ) -> QueryLog:
         """Log a query for analytics."""
-        log_id = str(uuid.uuid4())[:8]
+        uid_str: str = str(uuid.uuid4())
+        log_id = uid_str[:8]
         log = QueryLog(
             id=log_id,
             query=query,
@@ -230,13 +296,16 @@ class StorageManager:
         
         # Trim old logs
         if len(self._query_logs) > self._max_query_logs:
-            self._query_logs = self._query_logs[-self._max_query_logs:]
+            logs_count = len(self._query_logs)
+            self._query_logs = self._query_logs[logs_count - self._max_query_logs:]
         
         return log
     
     def get_query_logs(self, limit: int = 100) -> List[QueryLog]:
         """Get recent query logs."""
-        return self._query_logs[-limit:]
+        logs_count = len(self._query_logs)
+        start_idx = max(0, logs_count - limit)
+        return self._query_logs[start_idx:]
     
     # -------------------------------------------------------------------------
     # Dashboard Stats
@@ -331,7 +400,8 @@ class StorageManager:
         color: str = "#3B82F6"
     ) -> Workspace:
         """Add a new workspace."""
-        workspace_id = str(uuid.uuid4())[:8]
+        uid_str: str = str(uuid.uuid4())
+        workspace_id = uid_str[:8]
         workspace = Workspace(
             id=workspace_id,
             name=name,
@@ -377,15 +447,17 @@ class StorageManager:
     def delete_workspace(self, workspace_id: str) -> bool:
         """Delete a workspace."""
         if workspace_id in self._workspaces:
-            del self._workspaces[workspace_id]
+            self._workspaces.pop(workspace_id, None)
             return True
         return False
     
     def add_dataset_to_workspace(self, workspace_id: str, dataset_id: str) -> bool:
         """Link a dataset to a workspace."""
         workspace = self._workspaces.get(workspace_id)
-        if not workspace:
+        if workspace is None:
             return False
+        
+        # Ensure we check dataset_ids safely
         if dataset_id not in workspace.dataset_ids:
             workspace.dataset_ids.append(dataset_id)
             workspace.updated_at = _now_iso()
@@ -423,16 +495,17 @@ class StorageManager:
     def remove_api_key(self, key_name: str) -> bool:
         """Remove an API key."""
         if key_name in self._settings.api_keys:
-            del self._settings.api_keys[key_name]
+            self._settings.api_keys.pop(key_name, None)
             return True
         return False
     
     def get_api_keys(self) -> Dict[str, str]:
         """Get all API keys (masked)."""
-        return {
-            name: f"****{value[-4:]}" if len(value) > 4 else "****"
-            for name, value in self._settings.api_keys.items()
-        }
+        masked_keys = {}
+        for name, value in self._settings.api_keys.items():
+            val_str: str = str(value)
+            masked_keys[name] = f"****{val_str[-4:]}" if len(val_str) > 4 else "****"
+        return masked_keys
 
 
 # Global storage instance

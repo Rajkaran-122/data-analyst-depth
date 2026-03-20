@@ -1,10 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
 import { Bell, Search, Moon, Sun, User, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 export function Header() {
     const { user, logout } = useAuthStore();
-    const [isDark, setIsDark] = React.useState(true); // TODO: Context
+    const [isDark, setIsDark] = useState(true); // TODO: Context
 
     const toggleTheme = () => {
         const root = window.document.documentElement;
@@ -40,7 +40,7 @@ export function Header() {
             {/* Profile */}
             <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-medium">
-                    {user?.full_name?.[0] || 'U'}
+                    {user?.fullName?.[0] || 'U'}
                 </div>
                 <button
                     onClick={logout}

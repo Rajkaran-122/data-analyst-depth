@@ -1,5 +1,3 @@
-import React from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { Play, Loader2, Sparkles } from 'lucide-react';
 
 import { SQLEditor } from './SQLEditor';
@@ -66,44 +64,32 @@ export function StudioLayout() {
                 </button>
             </div>
 
-            {/* Main Workspace */}
-            <div className="flex-1 overflow-hidden">
-                <PanelGroup direction="horizontal">
-                    {/* Left: Schema */}
-                    <Panel defaultSize={20} minSize={15} maxSize={30} collapsible>
-                        <SchemaBrowser />
-                    </Panel>
+            {/* Main Workspace - Simplified grid layout instead of resizable panels */}
+            <div className="flex-1 overflow-hidden flex">
+                {/* Left: Schema */}
+                <div className="w-64 border-r overflow-hidden flex-shrink-0">
+                    <SchemaBrowser />
+                </div>
 
-                    <PanelResizeHandle className="w-1 bg-border hover:bg-primary/50 transition-colors" />
+                {/* Center: Work Area */}
+                <div className={cn("flex-1 flex flex-col", isChatOpen && "mr-80")}>
+                    {/* Top: Editor */}
+                    <div className="h-2/5 border-b overflow-hidden">
+                        <SQLEditor onExecute={handleRun} />
+                    </div>
 
-                    {/* Center: Work Area */}
-                    <Panel defaultSize={isChatOpen ? 55 : 80}>
-                        <PanelGroup direction="vertical">
-                            {/* Top: Editor */}
-                            <Panel defaultSize={40} minSize={20}>
-                                <SQLEditor onExecute={handleRun} />
-                            </Panel>
+                    {/* Bottom: Results */}
+                    <div className="flex-1 overflow-hidden">
+                        <DataGrid data={queryData?.rows} isLoading={isPending} />
+                    </div>
+                </div>
 
-                            <PanelResizeHandle className="h-1 bg-border hover:bg-primary/50 transition-colors" />
-
-                            {/* Bottom: Results */}
-                            <Panel defaultSize={60} minSize={20}>
-                                <DataGrid data={queryData?.rows} isLoading={isPending} />
-                            </Panel>
-                        </PanelGroup>
-                    </Panel>
-
-                    {/* Right: AI Chat */}
-                    {isChatOpen && (
-                        <>
-                            <PanelResizeHandle className="w-1 bg-border hover:bg-purple-500/50 transition-colors" />
-                            <Panel defaultSize={25} minSize={20} maxSize={40}>
-                                <ChatPanel />
-                            </Panel>
-                        </>
-                    )}
-
-                </PanelGroup>
+                {/* Right: AI Chat */}
+                {isChatOpen && (
+                    <div className="w-80 border-l flex-shrink-0">
+                        <ChatPanel />
+                    </div>
+                )}
             </div>
         </div>
     );
