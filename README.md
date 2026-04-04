@@ -361,4 +361,4 @@ For now, you have a solid MVP with:
 - Persistent activity logs
 - A dashboard, workspace, and connectors panel
 - Health checks and testable endpoints
-```
+
