@@ -142,11 +142,13 @@ Key frontend components:
 
 ---
 ##  Architecture Diagram
+---
 <img width="1760" height="4550" alt="User Input Authentication-2026-04-04-202409" src="https://github.com/user-attachments/assets/6158b034-0f3c-4cff-a61a-b14efe63449c" />
 
 ---
 ## Data Flow Diagram
-<img width="1760" height="4550" alt="User Input Authentication-2026-04-04-202409" src="https://github.com/user-attachments/assets/ab051388-4587-4dd7-92ca-e715fdd989e4" />
+---
+<img width="7564" height="2906" alt="User Input Authentication-2026-04-04-203017" src="https://github.com/user-attachments/assets/b3935b13-e7d7-4b9c-9c47-8a7ce3e014d8" />
 
 ---
 ##  Running Locally
