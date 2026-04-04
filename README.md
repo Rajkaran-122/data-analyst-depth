@@ -7,7 +7,7 @@ A full-stack **Data Bridge platform** built on top of the TDS Data Analyst agent
 
 ---
 
-## 🔧 Tech Stack (2026)
+##  Tech Stack (2026)
 
 - **Frontend**: React + Tailwind CSS + Craco
 - **Backend**: FastAPI (Python) + Uvicorn
@@ -23,7 +23,7 @@ A full-stack **Data Bridge platform** built on top of the TDS Data Analyst agent
 ---
 
 
-## 🚀 Core Features
+## Core Features
 
 ### 1. Workspace (Interactive Analytics)
 
@@ -111,7 +111,7 @@ This does two things:
 
 ---
 
-## 🧱 Architecture Overview
+##  Architecture Overview
 
 ```text
 React Frontend
@@ -140,7 +140,7 @@ Key frontend components:
 
 ---
 
-## ⚙️ Running Locally
+##  Running Locally
 
 ### 1. Prerequisites
 - Python 3.10+
@@ -180,7 +180,7 @@ npm start
 
 ---
 
-## 🔍 Backend: Health & API Testing
+##  Backend: Health & API Testing
 
 Run these from inside the container.
 
@@ -242,7 +242,7 @@ curl -sS -X POST http://localhost:8001/api/connectors/csv-upload/test
 
 ---
 
-## 🗄 MongoDB Persistence Details
+## MongoDB Persistence Details
 
 The backend uses `motor.motor_asyncio.AsyncIOMotorClient` and the existing `MONGO_URL` / `DB_NAME` from `backend/.env`.
 
@@ -270,7 +270,7 @@ Persistence is **best-effort**:
 
 ---
 
-## 🖥 Frontend Usage
+##  Frontend Usage
 
 Once services are running:
 
@@ -291,7 +291,7 @@ The UI is fully instrumented with `data-testid` attributes for automated testing
 
 ---
 
-## 🧪 Basic Sanity Check Sequence
+##  Basic Sanity Check Sequence
 
 ```bash
 cd /app
@@ -315,7 +315,7 @@ Then:
 
 ---
 
-## 🐛 Logs & Debugging
+##  Logs & Debugging
 
 If something misbehaves:
 
@@ -335,7 +335,7 @@ Use these together with browser DevTools (Console + Network) to diagnose issues 
 
 ---
 
-## 🔮 Next Steps / Extensions
+##  Next Steps / Extensions
 
 This foundation supports:
 
