@@ -44,7 +44,18 @@ To see under the hood, view the comprehensive functional business docs:
 
 ---
 
-## ⚙️ Running Locally
+---
+##  Architecture Diagram
+---
+<img width="8191" height="570" alt="image" src="https://github.com/user-attachments/assets/152d6acf-f45f-4237-913b-13c1d5c4852c" />
+
+---
+## Data Flow Diagram
+---
+<img width="7564" height="2906" alt="User Input Authentication-2026-04-04-203017" src="https://github.com/user-attachments/assets/b3935b13-e7d7-4b9c-9c47-8a7ce3e014d8" />
+
+---
+##  Running Locally
 
 ### 1. Prerequisites
 - Python 3.10+
