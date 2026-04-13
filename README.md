@@ -1,4 +1,4 @@
-# Data Analyst Depth (DAD) 📊 — AI-Powered Analytics Intelligence
+# Data Analyst Depth (DAD)  — AI-Powered Analytics Intelligence
 
 > **The ultimate modern platform for automated data analysis, bridging the gap between raw data files and production-grade AI insights.**
 
