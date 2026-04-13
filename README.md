@@ -43,6 +43,7 @@ Data Analyst Depth utilizes a high-octane modern deployment strategy.
 To see under the hood, view the comprehensive functional business docs:
 *  [Business Requirements Document (BRD)](./docs/BRD.md)
 *  [Platform Architecture & DFD](./docs/ARCHITECTURE.md)
+*  [Cloud Deployment Guide (Free Tier)](./docs/DEPLOYMENT.md)
 
 ---
 
