@@ -2,7 +2,8 @@
 import sys
 import asyncio
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+
 
 async def check_mongo():
     try:

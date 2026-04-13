@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: data-analyst-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URL
+        fromService:
+          name: data-analyst-db
+          type: mongodb
+          property: connectionString
+      - key: DB_NAME
+        value: data_analyst
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*" # Update this to your Vercel URL after deployment
+      - key: GOOGLE_API_KEY
+        sync: false # Set this in the Render dashboard
+
+databases:
+  - name: data-analyst-db
+    type: mongodb
+    plan: free

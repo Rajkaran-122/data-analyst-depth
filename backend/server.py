@@ -40,6 +40,7 @@ from settings_routes import router as settings_router  # type: ignore
 from workspaces_routes import router as workspaces_router  # type: ignore
 from auth import router as auth_router  # type: ignore
 from storage import storage  # type: ignore
+from download_routes import router as download_router  # type: ignore
 
 
 # -----------------------------------------------------------------------------
@@ -87,6 +88,9 @@ class QuestionRequest(BaseModel):
 
     question: str
     context: Dict[str, Any] = {}
+    session_id: Optional[str] = None
+    api_key: Optional[str] = None
+    provider: Optional[str] = None
 
 
 class AnalysisResponse(BaseModel):
@@ -107,6 +111,7 @@ metrics: Dict[str, Any] = {
     "total_analyze_requests": 0,
     "total_file_uploads": 0,
     "total_errors": 0,
+    "total_downloads": 0,
     "last_request_at": None,
 }
 
@@ -513,7 +518,11 @@ async def health_check() -> Dict[str, Any]:
 
 @api_router.get("/metrics")
 async def get_metrics() -> Dict[str, Any]:
-    return {**metrics, "activity_count": len(recent_activity)}
+    return {
+        **metrics,
+        "activity_count": len(recent_activity),
+        "total_downloads": storage.get_download_stats()["total_downloads"],
+    }
 
 
 @api_router.get("/activity")
@@ -599,28 +608,23 @@ async def analyze_question(request: QuestionRequest) -> AnalysisResponse:
     try:
         logger.info(f"Received analysis request: {request.question}")
 
-        # Check for API key in env vars OR in stored settings
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        # Check for API key in env vars OR in stored settings OR in request
+        api_key = request.api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        provider = request.provider or "gemini"
         
         if not api_key:
             settings_keys = storage.get_api_keys()
-            # Try to find a key in settings (looking for common names)
+            # Try to find a key in settings
             for k, v in storage._settings.api_keys.items():
                 if "GOOGLE" in k.upper() or "GEMINI" in k.upper() or "API_KEY" in k.upper():
                     api_key = v
-                    # Temporarily set env var for the agent to pick it up
-                    os.environ["GOOGLE_API_KEY"] = v
                     break
 
         use_llm = bool(api_key)
 
         if use_llm:
-            # Re-initialize agent if it was created without a key but now we have one
-            # Note: The agent reads the key from os.environ on call, or we can pass config
-            # But agent_core.py reads os.getenv inside generate_analysis_script
-            
             result = await agent.process_question(
-                question=request.question, context=request.context
+                question=request.question, context=request.context, api_key=api_key, provider=provider
             )
 
             logger.info("Analysis completed successfully via LLM")
@@ -663,15 +667,12 @@ async def analyze_question(request: QuestionRequest) -> AnalysisResponse:
 
 @api_router.post("/")
 async def analyze_file_upload(request: Request):
-    """Analyze a data question from uploaded text file + optional data files.
-
-    Expected multipart form-data where 'questions.txt' contains the question
-    and additional files (e.g., CSV) provide data.
-    """
-
     try:
         form = await request.form()
         files: List[Tuple[str, UploadFile]] = []
+        
+        req_api_key = str(form.get("api_key", ""))
+        req_provider = str(form.get("provider", "gemini"))
 
         for key, value in form.multi_items():
             try:
@@ -685,6 +686,20 @@ async def analyze_file_upload(request: Request):
         if not files and ("questions.txt" in form or "question" in form):
             qt = str(form.get("questions.txt") or form.get("question") or "").strip()
             if qt:
+                # Resolve key
+                api_key = req_api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+                if not api_key:
+                    for k, v in storage._settings.api_keys.items():
+                        if "GOOGLE" in k.upper() or "GEMINI" in k.upper() or "API_KEY" in k.upper():
+                            api_key = v; break
+                
+                if api_key:
+                    res = await agent.process_question(qt, context={}, api_key=api_key, provider=req_provider)
+                    _record_activity("upload", 200)
+                    return JSONResponse(content={
+                        "raw_output": res["output"], "status": "completed"
+                    })
+                    
                 offline_result = _offline_analyze_router(qt)
                 _record_activity("upload", 200)
                 return JSONResponse(content=offline_result)
@@ -695,26 +710,15 @@ async def analyze_file_upload(request: Request):
 
         question_file: UploadFile | None = None
         for key, f in files:
-            if key == "questions.txt":
-                question_file = f
-                break
-        if question_file is None:
-            for key, f in files:
-                if key == "question":
-                    question_file = f
-                    break
-        if question_file is None:
+            if key == "questions.txt" or key == "question":
+                question_file = f; break
+        if not question_file:
             question_file = files[0][1]
-
-        logger.info(f"Received file upload: {question_file.filename}")
 
         file_content = await question_file.read()
         question_text = file_content.decode("utf-8", errors="ignore").strip()
 
-        logger.info(f"Processing question from file: {question_text[:100]}...")
-
         temp_dir = tempfile.mkdtemp()
-
         try:
             csv_count = 0
             for key, file in files:
@@ -723,16 +727,10 @@ async def analyze_file_upload(request: Request):
                     filename_lower = file.filename.lower()
 
                     if filename_lower.endswith(".csv"):
-                        if "node" in filename_lower:
-                            standard_name = "nodes.csv"
-                        elif "edge" in filename_lower:
-                            standard_name = "edges.csv"
-                        elif csv_count == 0:
-                            standard_name = "data.csv"
-                            csv_count += 1
-                        else:
-                            standard_name = f"data{csv_count}.csv"
-                            csv_count += 1
+                        if "node" in filename_lower: standard_name = "nodes.csv"
+                        elif "edge" in filename_lower: standard_name = "edges.csv"
+                        elif csv_count == 0: standard_name = "data.csv"; csv_count += 1
+                        else: standard_name = f"data{csv_count}.csv"; csv_count += 1
                     elif filename_lower.endswith((".xlsx", ".xls")):
                         standard_name = "data.xlsx"
                     else:
@@ -741,39 +739,30 @@ async def analyze_file_upload(request: Request):
                     save_path = os.path.join(temp_dir, standard_name)
                     with open(save_path, "wb") as f_out:
                         f_out.write(data_bytes)
-                    logger.info(f"Saved: {file.filename} -> {standard_name}")
 
             original_cwd = os.getcwd()
             os.chdir(temp_dir)
 
-            use_llm = bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
+            api_key = req_api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                for k, v in storage._settings.api_keys.items():
+                    if "GOOGLE" in k.upper() or "GEMINI" in k.upper() or "API_KEY" in k.upper():
+                        api_key = v; break
+
+            use_llm = bool(api_key)
+            
             if use_llm:
                 try:
-                    from agent_core import generate_analysis_script, execute_script  # type: ignore
- 
-                    generated_script = generate_analysis_script(question_text, agent.config)  # type: ignore
-
-                    logger.info("Script generation completed")
-                    json_output = execute_script(generated_script, agent.config)
-                    logger.info("Script execution completed")
-
+                    res = await agent.process_question(question_text, context={}, api_key=api_key, provider=req_provider)
                     try:
-                        parsed_result = json.loads(json_output)
-                        logger.info("JSON parsing successful")
+                        parsed_result = json.loads(str(res["output"])) if isinstance(res["output"], str) else res["output"]
                         _record_activity("upload", 200)
                         return JSONResponse(content=parsed_result)
-                    except json.JSONDecodeError as json_err:
-                        logger.warning(f"JSON parsing failed: {json_err}")
+                    except Exception:
                         _record_activity("upload", 500)
-                        return JSONResponse(
-                            content={
-                                "raw_output": json_output,
-                                "error": "Output was not valid JSON",
-                                "status": "completed_with_warning",
-                            }
-                        )
+                        return JSONResponse(content={"raw_output": res["output"], "status": "completed_with_warning"})
                 except Exception as e:
-                    logger.warning(f"LLM path failed, falling back to offline analysis: {e}")
+                    logger.warning(f"LLM fail: {e}")
 
             offline_result = _offline_analyze_router(question_text)
             _record_activity("upload", 200)
@@ -788,11 +777,7 @@ async def analyze_file_upload(request: Request):
         _record_activity("upload", 500)
         return JSONResponse(
             status_code=500,
-            content={
-                "error": str(e),
-                "status": "failed",
-                "message": "An error occurred while processing your request",
-            },
+            content={"error": str(e), "status": "failed"},
         )
 
 
@@ -808,6 +793,7 @@ api_router.include_router(analytics_router)
 api_router.include_router(reports_router)
 api_router.include_router(settings_router)
 api_router.include_router(workspaces_router)
+api_router.include_router(download_router)
 
 app.include_router(api_router)
 

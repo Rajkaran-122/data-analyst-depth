@@ -877,7 +877,10 @@ function ProtectedLayout() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSendMessage = useCallback(async (content, formData = null) => {
+  const handleSendMessage = useCallback(async (content, secondArg = null) => {
+    let formData = secondArg instanceof FormData ? secondArg : null;
+    let aiConfig = secondArg && !(secondArg instanceof FormData) ? secondArg : {};
+
     setMessages(prev => [...prev, { role: 'user', content }]);
     setIsLoading(true);
 
@@ -891,7 +894,13 @@ function ProtectedLayout() {
         setSessionId(currentSessionId);
       }
 
+      // Ensure fallback to localstorage if they didn't explicitly use ChatInterface settings (e.g. Dashboard direct analyze)
+      const finalApiKey = aiConfig.apiKey || localStorage.getItem('da_api_key') || null;
+      const finalProvider = aiConfig.modelProvider || localStorage.getItem('da_model_provider') || 'gemini';
+
       if (formData) {
+        if (finalApiKey) formData.append('api_key', finalApiKey);
+        if (finalProvider) formData.append('provider', finalProvider);
         response = await api.post('/', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -899,7 +908,9 @@ function ProtectedLayout() {
         response = await api.post('/analyze', {
           question: content,
           context: {},
-          session_id: currentSessionId
+          session_id: currentSessionId,
+          api_key: finalApiKey,
+          provider: finalProvider
         });
       }
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ExportIcon, RefreshIcon, MoreIcon, CloseIcon } from '../icons';
+import { ExportIcon, RefreshIcon, MoreIcon, CloseIcon, SettingsIcon } from '../icons';
 import { CopyIcon, ImageDownIcon, CheckIcon } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import {
@@ -15,6 +15,16 @@ export function ChatInterface({
     placeholder = "Ask anything about your data..."
 }) {
     const [input, setInput] = useState('');
+    const [showSettings, setShowSettings] = useState(false);
+    const [apiKey, setApiKey] = useState(localStorage.getItem('da_api_key') || '');
+    const [modelProvider, setModelProvider] = useState(localStorage.getItem('da_model_provider') || 'gemini');
+    
+    // Save settings when changed
+    useEffect(() => {
+        localStorage.setItem('da_api_key', apiKey);
+        localStorage.setItem('da_model_provider', modelProvider);
+    }, [apiKey, modelProvider]);
+
     const messagesEndRef = useRef(null);
 
     const suggestedQueries = [
@@ -34,7 +44,8 @@ export function ChatInterface({
 
     const handleSend = () => {
         if (!input.trim() || isLoading) return;
-        onSendMessage(input.trim());
+        // Pass configurations dynamically with the message payload
+        onSendMessage(input.trim(), { apiKey, modelProvider });
         setInput('');
     };
 
@@ -69,9 +80,52 @@ export function ChatInterface({
                         <span className="text-xs text-[#10B981]">Online</span>
                     </div>
                 </div>
-                <button className="p-1.5 rounded-lg text-[#71717A] hover:text-white hover:bg-[#1A1A24] transition-all">
-                    <MoreIcon className="w-4 h-4" />
-                </button>
+                <div className="relative">
+                    <button 
+                        onClick={() => setShowSettings(!showSettings)}
+                        className={`p-1.5 rounded-lg transition-all ${showSettings ? 'bg-[#3B82F6]/20 text-[#3B82F6]' : 'text-[#71717A] hover:text-white hover:bg-[#1A1A24]'}`}
+                        title="AI Settings"
+                    >
+                        <SettingsIcon className="w-4 h-4" />
+                    </button>
+                    
+                    {/* Settings Dropdown */}
+                    {showSettings && (
+                        <div className="absolute right-0 mt-2 w-64 bg-[#12121A] border border-[#1E1E2A] rounded-xl shadow-xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between mb-3 border-b border-[#1E1E2A] pb-2">
+                                <h4 className="text-sm font-semibold text-[#E5E7EB]">AI Configuration</h4>
+                                <button onClick={() => setShowSettings(false)} className="text-[#A1A1AA] hover:text-white">
+                                    <CloseIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-[#A1A1AA]">Model Provider</label>
+                                    <select 
+                                        value={modelProvider}
+                                        onChange={(e) => setModelProvider(e.target.value)}
+                                        className="w-full bg-[#1A1A24] border border-[#2A2A3A] rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-[#3B82F6] outline-none transition-colors"
+                                    >
+                                        <option value="gemini">Google Gemini (Default)</option>
+                                        <option value="openai">OpenAI GPT-4o</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-medium text-[#A1A1AA]">API Key (Optional)</label>
+                                    <input 
+                                        type="password"
+                                        placeholder="Sk-..."
+                                        value={apiKey}
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        className="w-full bg-[#1A1A24] border border-[#2A2A3A] rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-[#52525B] focus:border-[#3B82F6] outline-none transition-colors"
+                                    />
+                                    <p className="text-[10px] text-[#71717A]">Leave empty to use server default.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Messages Area */}

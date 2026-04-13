@@ -3,9 +3,10 @@ import api from '../../lib/api';
 import { 
   SearchIcon, UploadIcon, DatabaseIcon as DatasetIcon,
   Trash2Icon, Edit2Icon, EyeIcon, MoreHorizontalIcon,
-  ArrowUpDownIcon, FileSpreadsheetIcon
+  ArrowUpDownIcon, FileSpreadsheetIcon, DownloadIcon
 } from 'lucide-react';
 import DatasetPreviewModal from './DatasetPreviewModal';
+import DownloadPanel from '../data/DownloadPanel';
 
 export default function DatasetsPage() {
   const [datasets, setDatasets] = useState([]);
@@ -29,6 +30,9 @@ export default function DatasetsPage() {
 
   // Delete State
   const [deletingId, setDeletingId] = useState(null);
+
+  // Download State
+  const [downloadDataset, setDownloadDataset] = useState(null);
 
   useEffect(() => {
     fetchDatasets();
@@ -316,13 +320,22 @@ export default function DatasetsPage() {
                 <p className="text-xs text-[#52525B]">
                   {new Date(dataset.uploaded_at).toLocaleDateString()}
                 </p>
-                <button 
-                  onClick={() => setPreviewDataset(dataset)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] text-xs font-medium hover:bg-[#3B82F6] hover:text-white transition-all"
-                >
-                  <EyeIcon className="w-3.5 h-3.5" />
-                  Preview & Schema
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setDownloadDataset(dataset)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#10B981]/10 text-[#10B981] text-xs font-medium hover:bg-[#10B981] hover:text-white transition-all"
+                  >
+                    <DownloadIcon className="w-3.5 h-3.5" />
+                    Download
+                  </button>
+                  <button 
+                    onClick={() => setPreviewDataset(dataset)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3B82F6]/10 text-[#3B82F6] text-xs font-medium hover:bg-[#3B82F6] hover:text-white transition-all"
+                  >
+                    <EyeIcon className="w-3.5 h-3.5" />
+                    Preview
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -339,7 +352,15 @@ export default function DatasetsPage() {
       <DatasetPreviewModal 
         isOpen={!!previewDataset} 
         onClose={() => setPreviewDataset(null)} 
-        dataset={previewDataset} 
+        dataset={previewDataset}
+        onOpenDownload={(ds) => { setPreviewDataset(null); setDownloadDataset(ds); }}
+      />
+
+      {/* Download Panel */}
+      <DownloadPanel
+        isOpen={!!downloadDataset}
+        onClose={() => setDownloadDataset(null)}
+        dataset={downloadDataset}
       />
 
       {/* Delete Confirmation Modal */}

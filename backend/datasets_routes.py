@@ -102,6 +102,9 @@ async def upload_dataset(
             preview=preview
         )
         
+        # Cache raw file bytes for download feature
+        storage.store_file_content(dataset.id, content)
+        
         return {
             "message": "Dataset uploaded successfully",
             "dataset": dataset.to_dict()

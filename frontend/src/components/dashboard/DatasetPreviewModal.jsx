@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { XIcon, TableIcon, CodeIcon, Loader2Icon } from 'lucide-react';
+import { XIcon, TableIcon, CodeIcon, Loader2Icon, DownloadIcon } from 'lucide-react';
 
-export default function DatasetPreviewModal({ isOpen, onClose, dataset }) {
+export default function DatasetPreviewModal({ isOpen, onClose, dataset, onOpenDownload }) {
   const [activeTab, setActiveTab] = useState('data'); // 'data' | 'schema'
   const [previewData, setPreviewData] = useState([]);
   const [columns, setColumns] = useState([]);
@@ -173,7 +173,18 @@ export default function DatasetPreviewModal({ isOpen, onClose, dataset }) {
         {/* Footer */}
         <div className="px-4 py-3 border-t border-[#1E1E2A] bg-[#12121A] text-xs text-[#71717A] flex justify-between items-center">
           <span>Displaying up to 100 preview rows.</span>
-          <span>{columns.length} Total Columns</span>
+          <div className="flex items-center gap-3">
+            <span>{columns.length} Total Columns</span>
+            {onOpenDownload && (
+              <button
+                onClick={() => onOpenDownload(dataset)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] text-white text-xs font-semibold hover:opacity-90 transition-all shadow-lg shadow-blue-500/20"
+              >
+                <DownloadIcon className="w-3.5 h-3.5" />
+                Download Data
+              </button>
+            )}
+          </div>
         </div>
 
       </div>

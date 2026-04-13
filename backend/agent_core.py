@@ -32,7 +32,8 @@ except ImportError:
 
 # Import OpenAI
 try:
-    import openai
+    import openai  # type: ignore
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -153,7 +154,9 @@ def extract_json_from_output(output: str) -> str:
 
 def generate_analysis_script(
     task_description: str,
-    config: Optional[AgentConfig] = None
+    config: Optional[AgentConfig] = None,
+    api_key: Optional[str] = None,
+    provider: str = 'gemini'
 ) -> Tuple[str, Dict[str, Any]]:
     """
     Generate the ULTIMATE Python script using Google Gemini or OpenAI API.
@@ -171,20 +174,20 @@ def generate_analysis_script(
     if config is None:
         config = AgentConfig()
 
-    provider = os.getenv('LLM_PROVIDER', 'gemini').lower()
+    provider = provider.lower() if provider else os.getenv('LLM_PROVIDER', 'gemini').lower()
 
     if provider == 'openai':
         if not OPENAI_AVAILABLE:
             raise Exception("OpenAI library not installed. Please install with: pip install openai")
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = api_key or os.getenv('OPENAI_API_KEY')
         if not api_key:
-            raise Exception("OPENAI_API_KEY environment variable not set")
+            raise Exception("OPENAI_API_KEY not provided or environment variable not set")
     else:
         if not GEMINI_AVAILABLE:
             raise Exception("Google Generative AI library not installed.")
-        api_key = os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
+        api_key = api_key or os.getenv('GOOGLE_API_KEY') or os.getenv('GEMINI_API_KEY')
         if not api_key:
-            raise Exception("GOOGLE_API_KEY (or GEMINI_API_KEY) environment variable not set")
+            raise Exception("Google API Key not provided or environment variable not set")
         if genai is not None:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(config.gemini_model)
@@ -443,7 +446,9 @@ class DataAnalystAgent:
     async def process_question(
         self, 
         question: str, 
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
+        api_key: Optional[str] = None,
+        provider: str = 'gemini'
     ) -> Dict[str, Any]:
         """
         Process any data analysis question and return structured data for Recharts.
@@ -456,7 +461,7 @@ class DataAnalystAgent:
         
         try:
             # Generate optimal code
-            generated_code, usage_data = generate_analysis_script(question, self.config)
+            generated_code, usage_data = generate_analysis_script(question, self.config, api_key=api_key, provider=provider)
             logger.info(f"Generated {len(generated_code)} characters of optimized code")
             
             # Execute with enhanced safety
