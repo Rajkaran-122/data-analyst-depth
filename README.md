@@ -1,4 +1,4 @@
-# Data Analyst Depth (DAD) 📊
+# Data Analyst Depth (DAD) 
 
 > **The ultimate modern platform for automated data analysis, bridging the gap between raw data files and production-grade AI insights.**
 
@@ -10,7 +10,7 @@ Powered by **Google Gemini** & **OpenAI GPT-4o**, DAD completely isolates data p
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **AI Chat Interface**: Ask plain-english questions about your datasets. The integrated agent engine will generate fully-sandboxed Pandas verification scripts to answer dynamically.
 * **Smart Cleaning & Formatting**: Standardize dates, handle missing variables, and auto-drop empty columns directly inside the upload pipeline.
@@ -19,7 +19,7 @@ Powered by **Google Gemini** & **OpenAI GPT-4o**, DAD completely isolates data p
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 Data Analyst Depth utilizes a high-octane modern deployment strategy.
 
@@ -38,11 +38,11 @@ Data Analyst Depth utilizes a high-octane modern deployment strategy.
 
 ---
 
-## 🗄️ Documentation
+##  Documentation
 
 To see under the hood, view the comprehensive functional business docs:
-* 📄 [Business Requirements Document (BRD)](./docs/BRD.md)
-* 📐 [Platform Architecture & DFD](./docs/ARCHITECTURE.md)
+*  [Business Requirements Document (BRD)](./docs/BRD.md)
+*  [Platform Architecture & DFD](./docs/ARCHITECTURE.md)
 
 ---
 
