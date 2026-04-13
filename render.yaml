@@ -2,7 +2,7 @@ services:
   - type: web
     name: data-analyst-backend
     env: docker
-    dockerContext: .
+    dockerContext: backend
     dockerfilePath: Dockerfile
     plan: free
     healthCheckPath: /api/health
