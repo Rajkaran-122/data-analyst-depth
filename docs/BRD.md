@@ -1,5 +1,6 @@
 # Business Requirements Document (BRD)
 **Project Name:** Data Analyst Depth (DAD)  
+**Live Portal:** [https://data-analyst-depth.vercel.app/](https://data-analyst-depth.vercel.app/)  
 **Document Version:** 1.0  
 **Date:** 2026-04-13  
 

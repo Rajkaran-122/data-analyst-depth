@@ -1,5 +1,7 @@
 # Architecture & Implementation
 
+**Live Portal:** [https://data-analyst-depth.vercel.app/](https://data-analyst-depth.vercel.app/)
+
 This document covers the core architecture, data pipelines, and relationship databases utilized inside Data Analyst Depth (DAD).
 
 ## 1. System Context Architecture

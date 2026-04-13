@@ -2,6 +2,8 @@
 
 > **The ultimate modern platform for automated data analysis, bridging the gap between raw data files and production-grade AI insights.**
 
+[![Live Portal](https://img.shields.io/badge/Live_Portal-Data_Analyst_Depth-blue?style=for-the-badge&logo=vercel)](https://data-analyst-depth.vercel.app/)
+
 Data Analyst Depth (DAD) is a full-stack, AI-powered internal workspace built to transform raw CSVs, Excel, and JSON data into actionable insights, interactive Recharts visualizations, and formatted reports. 
 
 Powered by **Google Gemini** & **OpenAI GPT-4o**, DAD completely isolates data processing via isolated thread-pools and local DuckDB logic, providing a flawless zero-latency UI while chewing through massive datasets.
