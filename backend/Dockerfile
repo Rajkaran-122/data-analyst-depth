@@ -30,4 +30,5 @@ RUN mkdir -p data_lake && chmod 777 data_lake
 EXPOSE 8000
 
 # Start command using Gunicorn with Uvicorn workers for production
-CMD ["gunicorn", "server:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+# Using 1 worker and --preload to fit within Render's 512MB free tier limit
+CMD ["gunicorn", "server:app", "--workers", "1", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--preload"]
