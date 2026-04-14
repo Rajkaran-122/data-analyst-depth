@@ -5,12 +5,14 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
-from database import SessionLocal
-from models import DatasetMeta, ReportMeta, QueryLogDB, WorkspaceDB
+from database import SessionLocal, init_db
 
 # Ensure data lake exists
 DATA_LAKE_DIR = "./data_lake"
 os.makedirs(DATA_LAKE_DIR, exist_ok=True)
+
+# Important: Initialize tables before any StorageManager operations
+init_db()
 
 def _now_iso() -> str:
     """Return current UTC timestamp in ISO format."""

@@ -27,6 +27,12 @@ SessionLocal = sessionmaker(
 
 Base = declarative_base()
 
+def init_db():
+    """Ensure all tables are created."""
+    # We import models here to ensure they are registered with Base metadata
+    import models
+    Base.metadata.create_all(bind=engine)
+
 def get_db():
     """Dependency injection to get DB session."""
     db = SessionLocal()
