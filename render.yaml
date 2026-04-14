@@ -3,7 +3,7 @@ services:
     name: data-analyst-prod-api
     env: docker
     dockerContext: backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: backend/Dockerfile
     plan: free
     healthCheckPath: /api/health
     envVars:
