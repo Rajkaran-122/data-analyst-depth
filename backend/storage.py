@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 
 from database import SessionLocal, init_db
+from models import DatasetMeta, ReportMeta, QueryLogDB, WorkspaceDB
 
 # Ensure data lake exists
 DATA_LAKE_DIR = "./data_lake"
